@@ -1,17 +1,13 @@
 package modules
 
 import (
-	lua "github.com/yuin/gopher-lua"
+	"github.com/patrixr/glue/pkg/core"
 )
 
-type LuaLifecycle interface {
-	AfterScript(func() error)
-}
-
-type LuaModuleLoader func(*lua.LState, LuaLifecycle) error
+type ModuleInstaller func(glue *core.Glue) error
 
 type ModuleRegistry struct {
-	loaders []LuaModuleLoader
+	modules []ModuleInstaller
 }
 
 func NewModuleRegistry() *ModuleRegistry {
@@ -20,13 +16,15 @@ func NewModuleRegistry() *ModuleRegistry {
 
 var Registry *ModuleRegistry = NewModuleRegistry()
 
-func (r *ModuleRegistry) AddLoader(module LuaModuleLoader) {
-	r.loaders = append(r.loaders, module)
+// Functions
+
+func (r *ModuleRegistry) RegisterModule(mod ModuleInstaller) {
+	r.modules = append(r.modules, mod)
 }
 
-func (r *ModuleRegistry) LoadModules(L *lua.LState, lifecycle LuaLifecycle) error {
-	for _, module := range r.loaders {
-		if err := module(L, lifecycle); err != nil {
+func (r *ModuleRegistry) InstallModules(glue *core.Glue) error {
+	for _, mod := range r.modules {
+		if err := mod(glue); err != nil {
 			return err
 		}
 	}

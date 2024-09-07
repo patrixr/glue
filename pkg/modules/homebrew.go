@@ -1,51 +1,53 @@
 package modules
 
 import (
+	"github.com/patrixr/glue/pkg/core"
 	"github.com/patrixr/glue/pkg/homebrew"
-	lua "github.com/yuin/gopher-lua"
+	"github.com/patrixr/glue/pkg/luatools"
 )
 
 func init() {
-	Registry.AddLoader(RegisterHomebrew)
+	Registry.RegisterModule(HomebrewMod)
 }
 
-func RegisterHomebrew(L *lua.LState, _ LuaLifecycle) error {
-	mt := L.NewTypeMetatable("homebrew")
+func HomebrewMod(glue *core.Glue) error {
 	brew := homebrew.NewHomebrew()
 
-	L.SetGlobal("brew", mt)
+	pkg := luatools.StrFunc(func(name string) error {
+		brew.Brew(name)
+		return nil
+	})
 
-	L.SetField(mt, "package", L.NewFunction(func(L *lua.LState) int {
-		brew.Brew(L.ToString(1))
-		return 0
-	}))
+	cask := luatools.StrFunc(func(name string) error {
+		brew.Cask(name)
+		return nil
+	})
 
-	L.SetField(mt, "cask", L.NewFunction(func(L *lua.LState) int {
-		brew.Cask(L.ToString(1))
-		return 0
-	}))
+	tap := luatools.StrFunc(func(name string) error {
+		brew.Tap(name)
+		return nil
+	})
 
-	L.SetField(mt, "tap", L.NewFunction(func(L *lua.LState) int {
-		brew.Tap(L.ToString(1))
-		return 0
-	}))
+	mas := luatools.StrFunc(func(name string) error {
+		brew.Mas(name)
+		return nil
+	})
 
-	L.SetField(mt, "mas", L.NewFunction(func(L *lua.LState) int {
-		brew.Mas(L.ToString(1))
-		return 0
-	}))
+	whalebrew := luatools.StrFunc(func(name string) error {
+		brew.Whalebrew(name)
+		return nil
+	})
 
-	L.SetField(mt, "whalebrew", L.NewFunction(func(L *lua.LState) int {
-		brew.Whalebrew(L.ToString(1))
-		return 0
-	}))
+	sync := luatools.Func(func() error {
+		return brew.Install()
+	})
 
-	L.SetField(mt, "sync", L.NewFunction(func(L *lua.LState) int {
-		if err := brew.Install(); err != nil {
-			L.RaiseError(err.Error())
-		}
-		return 0
-	}))
+	glue.AddFunction("brew.package", pkg)
+	glue.AddFunction("brew.cask", cask)
+	glue.AddFunction("brew.tap", tap)
+	glue.AddFunction("brew.mas", mas)
+	glue.AddFunction("brew.whalebrew", whalebrew)
+	glue.AddFunction("brew.sync", sync)
 
 	return nil
 }

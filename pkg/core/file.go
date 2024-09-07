@@ -15,10 +15,6 @@ func AutoDetectScriptFile() (string, error) {
 		return "", err
 	}
 
-	if file, err := TryFindFile(wd, ".glue.lua"); err == nil {
-		return file, nil
-	}
-
 	if file, err := TryFindFile(wd, "glue.lua"); err == nil {
 		return file, nil
 	}
@@ -31,14 +27,6 @@ func AutoDetectScriptFile() (string, error) {
 		return "", err
 	}
 
-	if file, err := TryFindFile(homeDir, ".glue.lua"); err == nil {
-		return file, nil
-	}
-
-	if file, err := TryFindFile(homeDir, "glue.lua"); err == nil {
-		return file, nil
-	}
-
 	// Check for the script in the user's configuration directory
 
 	configFolder := filepath.Join(homeDir, ".config", "glue")
@@ -48,6 +36,20 @@ func AutoDetectScriptFile() (string, error) {
 	}
 
 	return "", errors.New("Unable to detect script file")
+}
+
+func TryFindGlueFile(path string) (string, error) {
+	stats, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		return "", err
+	}
+
+	if stats.IsDir() {
+		return TryFindFile(path, "glue.lua")
+	}
+
+	return path, nil
 }
 
 func TryFindFile(directory string, filename string) (string, error) {

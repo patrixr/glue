@@ -1,4 +1,4 @@
-.PHONY: tidy run build test clean
+.PHONY: tidy dry help build test clean
 
 BIN_NAME := glue
 BUILD_FOLDER := ./.out
@@ -6,8 +6,17 @@ BUILD_FOLDER := ./.out
 build:
 	go build -o ${BUILD_FOLDER}/${BIN_NAME} ./
 
-run:
-	go run ./
+dry:
+	go run ./ --dry-run
+
+example:
+	go run ./ -p examples/run
+
+
+#go run ./ -f examples/prints/glue.lue
+
+help:
+	go run ./ --help
 
 tidy:
 	go mod tidy

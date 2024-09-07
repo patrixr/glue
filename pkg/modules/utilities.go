@@ -3,43 +3,29 @@ package modules
 import (
 	"os"
 
-	"github.com/charmbracelet/log"
+	"github.com/patrixr/glue/pkg/core"
+	"github.com/patrixr/glue/pkg/luatools"
 	"github.com/patrixr/glue/pkg/shell"
 	lua "github.com/yuin/gopher-lua"
 )
 
 func init() {
-	Registry.AddLoader(RegisterLuaPrint)
-	Registry.AddLoader(RegisterLuaSh)
+	Registry.RegisterModule(UtilitiesMod)
 }
 
-func RegisterLuaSh(L *lua.LState, _ LuaLifecycle) error {
-	L.Register("sh", func(L *lua.LState) int {
-		L.CheckTypes(1, lua.LTString)
-
-		cmd := L.ToString(1)
-		error := shell.Run(cmd, os.Stdout, os.Stderr)
-
-		if error != nil {
-			L.ArgError(1, error.Error())
-		}
-
-		return 0
+func UtilitiesMod(glue *core.Glue) error {
+	sh := luatools.StrFunc(func(cmd string) error {
+		return shell.Run(cmd, os.Stdout, os.Stderr)
 	})
 
-	return nil
-}
-
-func RegisterLuaPrint(L *lua.LState, _ LuaLifecycle) error {
-	L.SetGlobal("print", L.NewFunction(func(L *lua.LState) int {
-		input := L.ToStringMeta(L.Get(1)).String()
-		LuaPrint(input)
+	print := func(L *lua.LState) int {
+		input := luatools.GetArgAsString(L, 1)
+		glue.Log.Info(input)
 		return 0
-	}))
+	}
+
+	glue.AddFunction("sh", sh)
+	glue.AddFunction("print", print)
 
 	return nil
-}
-
-func LuaPrint(input string) {
-	log.Info(input)
 }
