@@ -13,11 +13,11 @@ func installNativeGlueModules(glue *Glue) {
 		if filepath.IsAbs(file) {
 			resolvedPath = file
 		} else {
-			current, err := glue.GetCurrentScript()
+			wd, err := glue.Getwd()
 			if err != nil {
 				return err
 			}
-			resolvedPath = filepath.Join(filepath.Dir(current), file)
+			resolvedPath = filepath.Join(wd, file)
 		}
 
 		scriptPath, err := TryFindGlueFile(resolvedPath)
@@ -26,7 +26,7 @@ func installNativeGlueModules(glue *Glue) {
 			return err
 		}
 
-		if err := glue.RunRaw(scriptPath); err != nil {
+		if err := glue.RunFileRaw(scriptPath); err != nil {
 			return err
 		}
 		return nil

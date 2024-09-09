@@ -10,8 +10,7 @@ dry:
 	go run ./ --dry-run
 
 example:
-	go run ./ -p examples/run
-
+	go run ./ -p examples/unsafe
 
 #go run ./ -f examples/prints/glue.lue
 

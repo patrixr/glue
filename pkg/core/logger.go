@@ -31,7 +31,7 @@ func (gl *GlueLogger) Error(msg interface{}, keyvals ...interface{}) {
 	gl.errLog.Error(msg, keyvals...)
 }
 
-func CreateLogger() Logger {
+func CreateLogger() *GlueLogger {
 	options := log.Options{
 		ReportTimestamp: true,
 	}

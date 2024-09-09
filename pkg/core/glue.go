@@ -2,6 +2,8 @@ package core
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 
 	"github.com/patrixr/glue/pkg/luatools"
 	lua "github.com/yuin/gopher-lua"
@@ -13,24 +15,46 @@ type Glue struct {
 	lstate            *lua.LState
 	fileStack         []string
 
-	DryRun bool
-	Log    Logger
-	Done   bool
+	ExecutionTrace []FunctionCall
+	DryRun         bool
+	Log            Logger
+	Done           bool
+	Unsafe         bool
 }
 
-type GlueOption func(glue *Glue)
+type GlueOptions struct {
+	Unsafe bool
+	DryRun bool
+}
 
-func NewGlue(options ...GlueOption) *Glue {
-	L := lua.NewState()
+type FunctionCall struct {
+	Name string
+	Args []string
+}
 
-	glue := &Glue{
+func NewGlue() *Glue {
+	return NewGlueWithOptions(GlueOptions{
+		Unsafe: false,
 		DryRun: false,
-		lstate: L,
-		Log:    CreateLogger(),
+	})
+}
+
+func NewGlueWithOptions(options GlueOptions) *Glue {
+	logger := CreateLogger()
+
+	if options.DryRun && options.Unsafe {
+		logger.Error("Unable to initialize glue in both DryRun and Unsafe modes")
+		os.Exit(1)
 	}
 
-	for _, opt := range options {
-		opt(glue)
+	L := lua.NewState(lua.Options{
+		SkipOpenLibs: !options.Unsafe,
+	})
+
+	glue := &Glue{
+		DryRun: options.DryRun,
+		lstate: L,
+		Log:    logger,
 	}
 
 	installNativeGlueModules(glue)
@@ -43,20 +67,34 @@ func (glue *Glue) Execute(file string) error {
 		return errors.New("Unable to reuse the same Glue instance")
 	}
 
-	defer glue.Close()
-
 	if err := glue.RunBeforeScript(); err != nil {
 		return err
 	}
 
-	if err := glue.RunRaw(file); err != nil {
+	if err := glue.RunFileRaw(file); err != nil {
 		return err
 	}
 
 	return glue.RunAfterScript()
 }
 
-func (glue *Glue) RunRaw(file string) error {
+func (glue *Glue) ExecuteString(script string) error {
+	if glue.Done {
+		return errors.New("Unable to reuse the same Glue instance")
+	}
+
+	if err := glue.RunBeforeScript(); err != nil {
+		return err
+	}
+
+	if err := glue.lstate.DoString(script); err != nil {
+		return err
+	}
+
+	return glue.RunAfterScript()
+}
+
+func (glue *Glue) RunFileRaw(file string) error {
 	glue.fileStack = append(glue.fileStack, file)
 	err := glue.lstate.DoFile(file)
 	glue.fileStack = glue.fileStack[:len(glue.fileStack)-1]
@@ -69,6 +107,14 @@ func (glue *Glue) GetCurrentScript() (string, error) {
 	}
 
 	return glue.fileStack[len(glue.fileStack)-1], nil
+}
+
+func (glue *Glue) Getwd() (string, error) {
+	current, err := glue.GetCurrentScript()
+	if err == nil {
+		return filepath.Dir(current), nil
+	}
+	return os.Getwd()
 }
 
 func (glue *Glue) Close() {
@@ -86,7 +132,7 @@ func (glue *Glue) AddFunction(name string, fn lua.LGFunction) error {
 		err := luatools.SetNestedGlobalValue(
 			glue.lstate,
 			name,
-			mock,
+			glue.WrapFunc(name, mock),
 		)
 
 		if err != nil {
@@ -99,7 +145,7 @@ func (glue *Glue) AddFunction(name string, fn lua.LGFunction) error {
 	err := luatools.SetNestedGlobalValue(
 		glue.lstate,
 		name,
-		glue.lstate.NewFunction(fn),
+		glue.WrapFunc(name, fn),
 	)
 
 	if err != nil {
@@ -122,6 +168,16 @@ func (glue *Glue) RunBeforeScript() error {
 
 func (glue *Glue) RunAfterScript() error {
 	return runAll(glue.afterScriptFuncs)
+}
+
+func (glue *Glue) WrapFunc(name string, fn lua.LGFunction) *lua.LFunction {
+	return glue.lstate.NewFunction(func(L *lua.LState) int {
+		glue.ExecutionTrace = append(glue.ExecutionTrace, FunctionCall{
+			name,
+			luatools.GetAllArgsAsStrings(L),
+		})
+		return fn(L)
+	})
 }
 
 func runAll(funcs []func() error) error {
