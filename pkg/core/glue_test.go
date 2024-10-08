@@ -14,10 +14,12 @@ func Test_FunctionCalling(t *testing.T) {
 
 	defer glue.Close()
 
-	glue.AddFunction("foo", func(L *lua.LState) int {
-		called = true
-		return 0
-	})
+	glue.Plug().
+		Name("foo").
+		Do(func(L *lua.LState) int {
+			called = true
+			return 0
+		})
 
 	t.Run("should fail to call a non-existing function", func(t *testing.T) {
 		glue := core.NewGlue()

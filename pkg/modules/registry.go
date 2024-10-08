@@ -7,7 +7,7 @@ import (
 type ModuleInstaller func(glue *core.Glue) error
 
 type ModuleRegistry struct {
-	modules []ModuleInstaller
+	installers []ModuleInstaller
 }
 
 func NewModuleRegistry() *ModuleRegistry {
@@ -16,15 +16,16 @@ func NewModuleRegistry() *ModuleRegistry {
 
 var Registry *ModuleRegistry = NewModuleRegistry()
 
-// Functions
-
+// RegisterModule adds a module installer to the registry
+// The installer is a function that installs the modules onto the Glue instance
 func (r *ModuleRegistry) RegisterModule(mod ModuleInstaller) {
-	r.modules = append(r.modules, mod)
+	r.installers = append(r.installers, mod)
 }
 
+// InstallModules installs all the modules in the registry onto the Glue instance
 func (r *ModuleRegistry) InstallModules(glue *core.Glue) error {
-	for _, mod := range r.modules {
-		if err := mod(glue); err != nil {
+	for _, install := range r.installers {
+		if err := install(glue); err != nil {
 			return err
 		}
 	}

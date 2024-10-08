@@ -2,19 +2,18 @@
 
 BIN_NAME := glue
 BUILD_FOLDER := ./.out
-BUILD_CMD :=
+EXAMPLE_DIR := examples/homebrew
 
-build: build-macos
+build:
+	go build -o ${BUILD_FOLDER}/${BIN_NAME} ./
 
-build-macos:
-	env GOOS=darwin GOARCH=amd64 go build -o ${BUILD_FOLDER}/macos-amd64/${BIN_NAME} ./
-	env GOOS=darwin GOARCH=arm64 go build -o ${BUILD_FOLDER}/macos-arm64/${BIN_NAME} ./
-
-dry:
-	go run ./ --dry-run
+dry-run:
+	@echo "Select test folder to run:"
+	@select d in ./examples/*/; do test -n "$$d" && go run ./ --dry-run -p "$$d"; break; echo ">>> Invalid Selection"; done
 
 example:
-	go run ./ -p examples/unsafe
+	@echo "Select test folder to run:"
+	@select d in ./examples/*/; do test -n "$$d" && go run ./ -p "$$d"; break; echo ">>> Invalid Selection"; done
 
 help:
 	go run ./ --help

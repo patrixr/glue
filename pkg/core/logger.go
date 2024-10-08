@@ -16,6 +16,9 @@ type Logger interface {
 type GlueLogger struct {
 	errLog *log.Logger
 	stdLog *log.Logger
+
+	Stdout *os.File
+	Stderr *os.File
 }
 
 func (gl *GlueLogger) Info(msg interface{}, keyvals ...interface{}) {
@@ -41,5 +44,6 @@ func CreateLogger() *GlueLogger {
 
 	return &GlueLogger{
 		errLog, stdLog,
+		os.Stdout, os.Stderr,
 	}
 }

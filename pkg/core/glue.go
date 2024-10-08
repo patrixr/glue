@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/patrixr/glue/pkg/luatools"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -17,9 +16,10 @@ type Glue struct {
 
 	ExecutionTrace []FunctionCall
 	DryRun         bool
-	Log            Logger
+	Log            *GlueLogger
 	Done           bool
 	Unsafe         bool
+	Modules        []*GlueModule
 }
 
 type GlueOptions struct {
@@ -122,38 +122,6 @@ func (glue *Glue) Close() {
 	glue.lstate.Close()
 }
 
-func (glue *Glue) AddFunction(name string, fn lua.LGFunction) error {
-	if len(name) == 0 {
-		return errors.New("Trying to register a module with empty name")
-	}
-
-	if glue.DryRun {
-		mock := glue.generateMockMethod(name)
-		err := luatools.SetNestedGlobalValue(
-			glue.lstate,
-			name,
-			glue.WrapFunc(name, mock),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	err := luatools.SetNestedGlobalValue(
-		glue.lstate,
-		name,
-		glue.WrapFunc(name, fn),
-	)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (glue *Glue) AfterScript(f func() error) {
 	glue.afterScriptFuncs = append(glue.afterScriptFuncs, f)
 }
@@ -168,16 +136,6 @@ func (glue *Glue) RunBeforeScript() error {
 
 func (glue *Glue) RunAfterScript() error {
 	return runAll(glue.afterScriptFuncs)
-}
-
-func (glue *Glue) WrapFunc(name string, fn lua.LGFunction) *lua.LFunction {
-	return glue.lstate.NewFunction(func(L *lua.LState) int {
-		glue.ExecutionTrace = append(glue.ExecutionTrace, FunctionCall{
-			name,
-			luatools.GetAllArgsAsStrings(L),
-		})
-		return fn(L)
-	})
 }
 
 func runAll(funcs []func() error) error {

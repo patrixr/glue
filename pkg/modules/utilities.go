@@ -14,18 +14,29 @@ func init() {
 }
 
 func UtilitiesMod(glue *core.Glue) error {
-	sh := luatools.StrFunc(func(cmd string) error {
-		return shell.Run(cmd, os.Stdout, os.Stderr)
-	})
-
 	print := func(L *lua.LState) int {
 		input := luatools.GetArgAsString(L, 1)
 		glue.Log.Info(input)
 		return 0
 	}
 
-	glue.AddFunction("sh", sh)
-	glue.AddFunction("print", print)
+	sh := luatools.StrFunc(func(cmd string) error {
+		return shell.Run(cmd, os.Stdout, os.Stderr)
+	})
+
+	glue.Plug().
+		Name("sh").
+		Short("Run a shell command").
+		Long("Run a shell command").
+		Example("sh('ls')").
+		Do(sh)
+
+	glue.Plug().
+		Name("print").
+		Short("Print a string").
+		Long("Print a string").
+		Example("print('Hello, world!')").
+		Do(print)
 
 	return nil
 }

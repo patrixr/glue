@@ -3,6 +3,7 @@ package homebrew
 import (
 	"fmt"
 	"os"
+
 	"time"
 
 	"github.com/patrixr/glue/pkg/shell"
@@ -49,8 +50,6 @@ func (h *Homebrew) Install() error {
 	if err != nil {
 		return err
 	}
-
-	// Build brewfile string
 
 	for _, row := range h.rows {
 		tmp.WriteString(fmt.Sprintf("%s \"%s\"\n", row.kind, row.name))
