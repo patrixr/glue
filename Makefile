@@ -1,8 +1,10 @@
-.PHONY: tidy dry help build test clean
+.PHONY: tidy dry-run example help build test clean install uninstall
 
 BIN_NAME := glue
-BUILD_FOLDER := ./.out
+BUILD_FOLDER := $(CURDIR)/.out
 EXAMPLE_DIR := examples/homebrew
+PREFIX ?= /usr/local
+INSTALL_PATH = $(PREFIX)/bin
 
 build:
 	go build -o ${BUILD_FOLDER}/${BIN_NAME} ./
@@ -28,3 +30,20 @@ clean:
 	find . -name "*~" -delete
 	find . -name ".DS_Store" -delete
 	find . -name "#*" -delete
+
+install: check-root
+	@echo "Creating symlink for $(BIN_NAME) in $(DESTDIR)$(INSTALL_PATH)"
+	@mkdir -p $(DESTDIR)$(INSTALL_PATH)
+	@ln -sf $(BUILD_FOLDER)/$(BIN_NAME) $(DESTDIR)$(INSTALL_PATH)/$(BIN_NAME)
+	@echo "Installation complete. You can now run '$(BIN_NAME)'"
+
+uninstall: check-root
+	@echo "Removing symlink for $(BIN_NAME) from $(DESTDIR)$(INSTALL_PATH)"
+	@rm -f $(DESTDIR)$(INSTALL_PATH)/$(BIN_NAME)
+	@echo "Uninstallation complete"
+
+check-root:
+	@if [ $$(id -u) -ne 0 ]; then \
+		echo "This target must be run as root or with sudo."; \
+		exit 1; \
+	fi
