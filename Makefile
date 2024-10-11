@@ -24,7 +24,7 @@ tidy:
 	go mod tidy
 
 test:
-	ENV=test go test  -v ./...
+	ENV=test go test -json -v  ./...  | go run  github.com/mfridman/tparse@latest -all
 
 clean:
 	find . -name "*~" -delete
