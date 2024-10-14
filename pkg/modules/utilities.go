@@ -6,6 +6,7 @@ import (
 	"github.com/patrixr/glue/pkg/core"
 	"github.com/patrixr/glue/pkg/luatools"
 	"github.com/patrixr/glue/pkg/shell"
+	"github.com/patrixr/q"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -24,6 +25,10 @@ func UtilitiesMod(glue *core.Glue) error {
 		return shell.Run(cmd, os.Stdout, os.Stderr)
 	})
 
+	trim := luatools.StrInStrOutFunc(func(s string) (string, error) {
+		return q.TrimIndent(s), nil
+	})
+
 	glue.Plug().
 		Name("sh").
 		Short("Run a shell command").
@@ -37,6 +42,14 @@ func UtilitiesMod(glue *core.Glue) error {
 		Long("Print a string").
 		Example("print('Hello, world!')").
 		Do(print)
+
+	glue.Plug().
+		Name("trim").
+		Short("Trims the extra indentation of a multi-line string").
+		Long("Trims the extra indentation of a multi-line string").
+		Example("trim(text)").
+		Mode(core.NONE).
+		Do(trim)
 
 	return nil
 }

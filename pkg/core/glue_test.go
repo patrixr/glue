@@ -41,13 +41,5 @@ func Test_FunctionCalling(t *testing.T) {
 			err := glue.ExecuteString("os.getenv(\"ENV\")")
 			assert.NotNil(t, err)
 		})
-
-		t.Run("should be allowed in unsafe mode", func(t *testing.T) {
-			unsafeGlue := core.NewGlueWithOptions(core.GlueOptions{
-				Unsafe: true,
-			})
-			err := unsafeGlue.ExecuteString("os.getenv(\"ENV\")")
-			assert.Nil(t, err)
-		})
 	})
 }

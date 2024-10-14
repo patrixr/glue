@@ -23,7 +23,6 @@ type Glue struct {
 }
 
 type GlueOptions struct {
-	Unsafe bool
 	DryRun bool
 }
 
@@ -34,7 +33,6 @@ type FunctionCall struct {
 
 func NewGlue() *Glue {
 	return NewGlueWithOptions(GlueOptions{
-		Unsafe: false,
 		DryRun: false,
 	})
 }
@@ -42,13 +40,8 @@ func NewGlue() *Glue {
 func NewGlueWithOptions(options GlueOptions) *Glue {
 	logger := CreateLogger()
 
-	if options.DryRun && options.Unsafe {
-		logger.Error("Unable to initialize glue in both DryRun and Unsafe modes")
-		os.Exit(1)
-	}
-
 	L := lua.NewState(lua.Options{
-		SkipOpenLibs: !options.Unsafe,
+		SkipOpenLibs: true,
 	})
 
 	glue := &Glue{

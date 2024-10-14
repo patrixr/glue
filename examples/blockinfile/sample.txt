@@ -1,0 +1,6 @@
+line 1
+line 2
+# BEGIN MANAGED BLOCK
+This is the content to insert
+# END MANAGED BLOCK
+line 3

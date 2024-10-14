@@ -28,7 +28,6 @@ var rootCmd = &cobra.Command{
 
 		glue := core.NewGlueWithOptions(core.GlueOptions{
 			DryRun: dryRun,
-			Unsafe: unsafe,
 		})
 
 		defer glue.Close()

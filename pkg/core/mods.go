@@ -12,6 +12,7 @@ import (
 type Mode uint8
 
 const (
+	NONE Mode = 0
 	READ Mode = 1 << iota
 	WRITE
 )
