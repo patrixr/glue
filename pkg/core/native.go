@@ -11,6 +11,7 @@ func installNativeGlueModules(glue *Glue) {
 	glue.Plug().
 		Name("glue.run").
 		Short("Run a glue script").
+		Arg("glue_file", "string", "the glue file to run").
 		Do(luatools.StrFunc(func(file string) error {
 			var resolvedPath string
 

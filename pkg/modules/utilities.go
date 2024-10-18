@@ -33,6 +33,7 @@ func UtilitiesMod(glue *core.Glue) error {
 		Name("sh").
 		Short("Run a shell command").
 		Long("Run a shell command").
+		Arg("cmd", "string", "the shell command to run").
 		Example("sh('ls')").
 		Do(sh)
 
@@ -40,6 +41,7 @@ func UtilitiesMod(glue *core.Glue) error {
 		Name("print").
 		Short("Print a string").
 		Long("Print a string").
+		Arg("obj", "any", "the message or object to log").
 		Example("print('Hello, world!')").
 		Do(print)
 
@@ -47,6 +49,7 @@ func UtilitiesMod(glue *core.Glue) error {
 		Name("trim").
 		Short("Trims the extra indentation of a multi-line string").
 		Long("Trims the extra indentation of a multi-line string").
+		Arg("txt", "string", "the text to trim").
 		Example("trim(text)").
 		Mode(core.NONE).
 		Do(trim)

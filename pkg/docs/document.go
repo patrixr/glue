@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/patrixr/glue/pkg/core"
+	"github.com/patrixr/q"
 )
 
 //go:embed templates/*
@@ -23,7 +24,7 @@ func GenerateModuleDoc(mod *core.GlueModule) string {
 	return buf.String()
 }
 
-func GenerateCLIDocumentation(glue *core.Glue) string {
+func GenerateMarkdownDocumentation(glue *core.Glue) string {
 	var builder strings.Builder
 
 	builder.WriteString("# Glue modules\n\n")
@@ -31,6 +32,57 @@ func GenerateCLIDocumentation(glue *core.Glue) string {
 
 	for _, mod := range glue.Modules {
 		builder.WriteString(fmt.Sprintf("- `%s`: %s\n", mod.Name, mod.Short))
+	}
+
+	return builder.String()
+}
+
+func GenerateLuaDocumentation(glue *core.Glue) string {
+	var builder strings.Builder
+	var globals *q.Node[string] = q.Tree[string]("root")
+
+	builder.WriteString("---@meta\n\n")
+
+	for _, mod := range glue.Modules {
+		fmt.Println(mod)
+		nestedKeys := strings.Split(mod.Name, ".")
+
+		if len(nestedKeys) <= 1 {
+			continue
+		}
+
+		node := globals
+		for _, key := range nestedKeys[:len(nestedKeys)] {
+			fmt.Println(key)
+			child := node.FindChild(func(s string) bool {
+				return s == key
+			})
+
+			if child == nil {
+				child = node.Add(key)
+			}
+
+			node = child
+		}
+	}
+
+	var traverse func(ref *q.Node[string], level int)
+
+	traverse = func(ref *q.Node[string], level int) {
+		builder.WriteString(fmt.Sprintf("%s%s = {\n", strings.Repeat("  ", level), ref.Data))
+		for _, child := range ref.Children {
+			traverse(child, level+1)
+		}
+		builder.WriteString(fmt.Sprintf("%s}\n", strings.Repeat("  ", level)))
+	}
+
+	for _, global := range globals.Children {
+		traverse(global, 0)
+	}
+
+	for _, mod := range glue.Modules {
+		builder.WriteString(mod.Annotation.Render())
+		builder.WriteString("\n")
 	}
 
 	return builder.String()

@@ -15,9 +15,10 @@ const (
 	NONE Mode = 0
 	READ Mode = 1 << iota
 	WRITE
+	NETWORK
 )
 
-const defaultMode = READ | WRITE
+const DefaultMode = READ | WRITE | NETWORK
 
 func HasMode(b, flag Mode) bool {
 	return b&flag != 0
@@ -26,35 +27,38 @@ func HasMode(b, flag Mode) bool {
 // A representation of a module
 // Modules can be installed into the Lua state
 type GlueModule struct {
-	Name     string
-	Short    string
-	Long     string
-	Mode     Mode
-	Examples []string
-	fn       lua.LGFunction
+	Name       string
+	Short      string
+	Long       string
+	Mode       Mode
+	Examples   []string
+	Annotation luatools.LuaFuncAnnotation
+	fn         lua.LGFunction
 }
 
 // An intermediate builder for creating a module
 type gluePlug struct {
-	name     string
-	short    string
-	long     string
-	mode     Mode
-	examples []string
-	glue     *Glue
+	name       string
+	short      string
+	long       string
+	mode       Mode
+	examples   []string
+	annotation luatools.LuaFuncAnnotation
+	glue       *Glue
 }
 
 // Entry point for creating a new module
 //
 // Example:
 //
-//	glue.Plug()
-//	   .Name("myModule")
-//	   .Do(func(L *lua.LState) int { ... })
+//	glue.Plug().
+//	   Name("myModule").
+//	   Short("description").
+//	   Do(...)
 func (glue *Glue) Plug() *gluePlug {
 	return &gluePlug{
 		glue: glue,
-		mode: defaultMode,
+		mode: DefaultMode,
 	}
 }
 
@@ -80,6 +84,23 @@ func (plug *gluePlug) Mode(mode Mode) *gluePlug {
 
 func (plug *gluePlug) Example(ex string) *gluePlug {
 	plug.examples = append(plug.examples, ex)
+	return plug
+}
+
+func (plug *gluePlug) Arg(name string, valtype string, desc string) *gluePlug {
+	plug.annotation.Args = append(plug.annotation.Args, luatools.LuaArgAnnotation{
+		Name: name,
+		Type: valtype,
+		Desc: desc,
+	})
+	return plug
+}
+
+func (plug *gluePlug) Return(valtype string, desc string) *gluePlug {
+	plug.annotation.Returns = append(plug.annotation.Returns, luatools.LuaReturnAnnotation{
+		Type: valtype,
+		Desc: desc,
+	})
 	return plug
 }
 
@@ -117,6 +138,8 @@ func (plug *gluePlug) Do(fn lua.LGFunction) error {
 		wrapped,
 	)
 
+	fmt.Println(err)
+
 	if err != nil {
 		return err
 	}
@@ -127,7 +150,13 @@ func (plug *gluePlug) Do(fn lua.LGFunction) error {
 		Short:    plug.short,
 		Mode:     mode,
 		Examples: plug.examples,
-		fn:       fn,
+		Annotation: luatools.LuaFuncAnnotation{
+			Name:    name,
+			Args:    plug.annotation.Args,
+			Returns: plug.annotation.Returns,
+			Desc:    plug.short,
+		},
+		fn: fn,
 	}
 
 	glue.Modules = append(glue.Modules, mod)

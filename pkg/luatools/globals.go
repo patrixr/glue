@@ -43,7 +43,6 @@ func SetNestedGlobalValue(L *lua.LState, path string, value lua.LValue) error {
 
 	var ref *lua.LTable
 	var err error
-	var ok bool
 
 	for i, key := range keys {
 		if i == len(keys)-1 {
@@ -58,9 +57,24 @@ func SetNestedGlobalValue(L *lua.LState, path string, value lua.LValue) error {
 			}
 		} else {
 			keystr := lua.LString(key)
-			if ref, ok = ref.RawGet(keystr).(*lua.LTable); !ok {
-				return fmt.Errorf("Unable to retrieve nested key '%s'", key)
+			nested := ref.RawGet(keystr)
+
+			if nested == lua.LNil {
+				table := L.NewTypeMetatable(key)
+				ref.RawSet(keystr, table)
+				ref = table
+				continue
 			}
+
+			obj, ok := ref.RawGet(keystr).(*lua.LTable)
+
+			if !ok {
+				return fmt.Errorf("A table was expected for nested key %s, but instead found %s", key, obj)
+			}
+			table := L.NewTypeMetatable(key)
+			ref.RawSet(keystr, table)
+			ref = table
+
 		}
 	}
 

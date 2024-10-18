@@ -58,6 +58,7 @@ func HomebrewMod(glue *core.Glue) error {
 	glue.Plug().
 		Name("brew.package").
 		Short("Marks a homebrew package for installation").
+		Arg("pkg", "string", "the name of the package to install").
 		Example("brew.package('git')").
 		Example("brew.package('zsh)").
 		Example("brew.sync()").
@@ -66,6 +67,7 @@ func HomebrewMod(glue *core.Glue) error {
 	glue.Plug().
 		Name("brew.cask").
 		Short("Marks a cask for installation").
+		Arg("pkg", "string", "the name of the cask to install").
 		Example("brew.cask('firefox')").
 		Example("brew.cask('spotify')").
 		Example("brew.sync()").
@@ -74,12 +76,14 @@ func HomebrewMod(glue *core.Glue) error {
 	glue.Plug().
 		Name("brew.tap").
 		Short("Marks a homebrew tap for installation").
+		Arg("tap", "string", "the name of the tap to install").
 		Example("brew.tap('homebrew/cask')").
 		Do(tap)
 
 	glue.Plug().
 		Name("brew.mas").
 		Short("Marks a Mac App Store package for installation").
+		Arg("name", "string", "the name of the mas to install").
 		Example("brew.mas('1Password')").
 		Example("brew.mas('Slack')").
 		Example("brew.sync()").
@@ -88,6 +92,7 @@ func HomebrewMod(glue *core.Glue) error {
 	glue.Plug().
 		Name("brew.whalebrew").
 		Short("Marks a whalebrew package for installation").
+		Arg("name", "string", "the name of the whalebrew to install").
 		Example("brew.whalebrew('whalebrew/awscli'").
 		Example("brew.whalebrew('whalebrew/ffmpeg')").
 		Do(whalebrew)

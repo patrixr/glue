@@ -16,6 +16,7 @@ func init() {
 			Name("backup").
 			Short("Creates a backup of a file").
 			Long("Creates a backup of a file").
+			Arg("path", "string", "the file to create a backup of").
 			Do(luatools.StrFunc(func(path string) error {
 				return Backup(path)
 			}))
