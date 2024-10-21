@@ -23,16 +23,32 @@ var documentCmd = &cobra.Command{
 			DryRun: true,
 		})
 
+		format, _ := cmd.Flags().GetString("format")
+
+		if format != "lua" && format != "md" {
+			fmt.Println("Error: Invalid format " + format)
+			os.Exit(1)
+		}
+
 		if err := modules.Registry.InstallModules(glue); err != nil {
 			glue.Log.Error(err)
 			os.Exit(1)
 		}
 
-		fmt.Println(docs.GenerateCLIDocumentation(glue))
+		if format == "lua" {
+			fmt.Println(docs.GenerateLuaDocumentation(glue))
+			return
+		}
+
+		if format == "md" {
+			fmt.Println(docs.GenerateMarkdownDocumentation(glue))
+			return
+		}
 	},
 }
 
 func init() {
+	documentCmd.Flags().StringP("format", "f", "md", "The output format (md or lua)")
 	rootCmd.AddCommand(documentCmd)
 
 	// Here you will define your flags and configuration settings.

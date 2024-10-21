@@ -1,4 +1,4 @@
-.PHONY: tidy dry-run example help build test clean install uninstall
+.PHONY: tidy example example\:dry help build test clean install uninstall check-root document\:lua document\:md
 
 BIN_NAME := glue
 BUILD_FOLDER := $(CURDIR)/.out
@@ -9,7 +9,7 @@ INSTALL_PATH = $(PREFIX)/bin
 build:
 	go build -o ${BUILD_FOLDER}/${BIN_NAME} ./
 
-dry-run:
+example\:dry:
 	@echo "Select test folder to run:"
 	@select d in ./examples/*/; do test -n "$$d" && go run ./ --dry-run -p "$$d"; break; echo ">>> Invalid Selection"; done
 
@@ -17,17 +17,21 @@ example:
 	@echo "Select test folder to run:"
 	@select d in ./examples/*/; do test -n "$$d" && go run ./ -p "$$d"; break; echo ">>> Invalid Selection"; done
 
-document:
-	@go run ./ document
+document\:lua:
+	@go run ./ document --format lua
+
+document\:md:
+	@go run ./ document --format md
 
 help:
 	go run ./ --help
 
 tidy:
+	go install github.com/mfridman/tparse@latest
 	go mod tidy
 
 test:
-	ENV=test go test -json -v  ./...  | go run  github.com/mfridman/tparse@latest -all
+	ENV=test go test -json -v  ./...  | tparse -all
 
 clean:
 	find . -name "*~" -delete
