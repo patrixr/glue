@@ -11,11 +11,11 @@ func TestFunctionAnnotationRender(t *testing.T) {
 	funcAnnotation := luatools.LuaFuncAnnotation{
 		Name: "myFunction",
 		Desc: "This is a test function.\nIt does something useful.",
-		Args: []luatools.LuaArgAnnotation{
+		Args: []luatools.LuaFieldDesc{
 			{Name: "arg1", Type: "string", Desc: "The first argument."},
 			{Name: "arg2", Type: "number", Desc: "The second argument."},
 		},
-		Returns: []luatools.LuaReturnAnnotation{
+		Returns: []luatools.LuaReturnDesc{
 			{Type: "boolean", Desc: "Returns true if successful."},
 		},
 	}
@@ -43,7 +43,7 @@ function myFunction(arg1, arg2) end
 func TestLuaClassAnnotation_Render(t *testing.T) {
 	classAnnotation := luatools.LuaClassAnnotation{
 		Name: "MyClass",
-		Fields: []luatools.LuaArgAnnotation{
+		Fields: []luatools.LuaFieldDesc{
 			{Name: "field1", Type: "string", Desc: "The first field."},
 			{Name: "field2", Type: "number", Desc: "The second field."},
 		},

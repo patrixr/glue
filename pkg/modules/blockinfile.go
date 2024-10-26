@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,9 +14,21 @@ import (
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
+		glue.Annotations.AddClass("BlockinfileParams").
+			Field("block", "string", "the multi-line text block to be inserted or updated").
+			Field("insertafter?", "string", "the multi-line text block to be inserted or updated").
+			Field("insertbefore?", "string", "the multi-line text block to be inserted or updated").
+			Field("marker?", "string", "the multi-line text block to be inserted or updated").
+			Field("markerbegin?", "string", "the multi-line text block to be inserted or updated").
+			Field("markerend?", "string", "the multi-line text block to be inserted or updated").
+			Field("state", "boolean", "the multi-line text block to be inserted or updated").
+			Field("backup?", "boolean", "the multi-line text block to be inserted or updated").
+			Field("create?", "boolean", "the multi-line text block to be inserted or updated")
+
 		glue.Plug().
 			Name("blockinfile").
 			Short("Insert/update/remove a block of multi-line text surrounded by customizable markers in a file").
+			Arg("block_params", "BlockinfileParams", "the configuration for the block insertion").
 			Long(q.Paragraph(`
 				The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
 				The block is surrounded by customizable markers to define its boundaries.
@@ -196,9 +207,6 @@ func BlockInFile(props BlockOpts) error {
 	if props.Backup && updated != source {
 		Backup(props.Path)
 	}
-
-	fmt.Println(string(data))
-	fmt.Println(updated)
 
 	file.Truncate(0)
 	file.Seek(0, 0)

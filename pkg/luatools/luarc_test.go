@@ -35,7 +35,7 @@ func TestLoadLuaRC(t *testing.T) {
 	luarc, err := LoadLuaRC(tmpfile)
 	assert.NoError(t, err)
 	expected := LuaRC{"key1": "value1", "key2": "value2"}
-	assert.Equal(t, expected, *luarc)
+	assert.Equal(t, expected, luarc)
 
 	invalidContent := `{"key1": "value1", "key2": }`
 	tmpfile = createTempFile(t, invalidContent)

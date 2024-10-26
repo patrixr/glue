@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/patrixr/glue/pkg/luatools"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -20,6 +21,7 @@ type Glue struct {
 	Done           bool
 	Unsafe         bool
 	Modules        []*GlueModule
+	Annotations    luatools.LuaAnnotations
 }
 
 type GlueOptions struct {

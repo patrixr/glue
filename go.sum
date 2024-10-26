@@ -23,8 +23,8 @@ github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyua
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/muesli/termenv v0.15.2 h1:GohcuySI0QmI3wN8Ok9PtKGkgkFIk7y6Vpb5PvrY+Wo=
 github.com/muesli/termenv v0.15.2/go.mod h1:Epx+iuz8sNs7mNKhxzH4fWXGNpZwUaJKRS1noLXviQ8=
-github.com/patrixr/q v0.8.1 h1:v7WuOfLHv7pIMcMrzkxdWm08J/qu9KL5SL7GD+sHNkk=
-github.com/patrixr/q v0.8.1/go.mod h1:ou3HU2BiheVB9YOGPcNoGuUoa5B5ThNS3+l3ir0bFz4=
+github.com/patrixr/q v0.9.0 h1:l9m3IjFJSFWyDGvIHyjVnb5JBBMQkt4sg58s4+4G1Oo=
+github.com/patrixr/q v0.9.0/go.mod h1:ou3HU2BiheVB9YOGPcNoGuUoa5B5ThNS3+l3ir0bFz4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=

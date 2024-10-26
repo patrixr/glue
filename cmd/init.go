@@ -9,6 +9,9 @@ import (
 	"path/filepath"
 
 	"github.com/patrixr/glue/pkg/core"
+	"github.com/patrixr/glue/pkg/docs"
+	"github.com/patrixr/glue/pkg/luatools"
+	"github.com/patrixr/glue/pkg/modules"
 	"github.com/patrixr/glue/pkg/shell"
 	"github.com/spf13/cobra"
 )
@@ -21,39 +24,87 @@ var initCmd = &cobra.Command{
 by creating a script file for you to configure your system
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		homedir := os.Getenv("HOME")
+		var glueFolder string
+		var err error
 
-		if len(homedir) == 0 {
-			fmt.Println("Error initializing glue. $HOME env variable not found")
+		glue := core.NewGlueWithOptions(core.GlueOptions{
+			DryRun: true,
+		})
+
+		// Helpers
+		boom := func(message string) {
+			glue.Log.Error("Unable to initialize glue in folder")
+			glue.Log.Error(message)
 			os.Exit(1)
 		}
 
-		configFolder := filepath.Join(homedir, ".config")
-		glueFolder := filepath.Join(configFolder, "glue")
+		mkdirp := func(path string) {
+			cmd := fmt.Sprintf("mkdir -p %s", path)
+
+			if err := shell.Run(cmd, os.Stdout, os.Stderr); err != nil {
+				boom(err.Error())
+			}
+		}
+
+		assert := func(err error, message string) {
+			if err != nil {
+				glue.Log.Error(message)
+				boom(err.Error())
+			}
+		}
+
+		// Install modules for documentation
+		assert(modules.Registry.InstallModules(glue), "Failed to initialize glue modules")
+
+		// Check glue home location
+		if len(args) > 0 {
+			glueFolder = args[0]
+			stat, err := os.Stat(glueFolder)
+
+			assert(err, "Failed to read glue folder")
+
+			if stat.IsDir() == false {
+				boom("Expected a directory as argument")
+			}
+		} else {
+			glueFolder, err = core.DefaultGlueFolder()
+
+			if err != nil {
+				boom("Unable to initialize glue in folder")
+			}
+		}
+
 		glueScript := filepath.Join(glueFolder, "glue.lua")
 
+		// Initialize glue script
 		if _, err := core.TryFindGlueFile(glueFolder); err == nil {
-			fmt.Println("A glue script already exists at ~/.config\nSkipping")
-			os.Exit(0)
+			glue.Log.Info("A glue script already exists at ~/.config. Skipping")
+		} else {
+			mkdirp(glueFolder)
+			assert(os.WriteFile(glueScript, []byte("-- Input code below"), 0644), "Failed to created glue file")
+			glue.Log.Info("Glue script initialized at " + glueScript)
 		}
 
-		fmt.Println("Initializing glue...")
+		// Create lib with metadata
+		luarcFile := filepath.Join(glueFolder, ".luarc.json")
+		libFolder := filepath.Join(glueFolder, "lib")
+		libFile := filepath.Join(libFolder, "glue_lib.lua")
 
-		mkdirp := fmt.Sprintf("mkdir -p %s", glueFolder)
+		mkdirp(libFolder)
 
-		if err := shell.Run(mkdirp, os.Stdout, os.Stderr); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		assert(os.WriteFile(libFile, []byte(docs.GenerateLuaDocumentation(glue)), 0644), "Failed to create glue meta file")
 
-		touch := fmt.Sprintf("touch %s", glueScript)
+		// Create luarc
+		luarc, err := luatools.InitLuaRC(glueFolder)
 
-		if err := shell.Run(touch, os.Stdout, os.Stderr); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		assert(err, "Failed to initialize .luarc")
 
-		fmt.Println("Glue script initialized at " + glueScript)
+		luarc.AddLibrary("./lib")
+		json, err := luarc.ToJSON()
+
+		assert(err, "Failed to marshal luarc into JSON")
+
+		assert(os.WriteFile(luarcFile, []byte(json), 0644), "Failed to save luarc file")
 	},
 }
 

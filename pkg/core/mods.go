@@ -27,17 +27,16 @@ func HasMode(b, flag Mode) bool {
 // A representation of a module
 // Modules can be installed into the Lua state
 type GlueModule struct {
-	Name       string
-	Short      string
-	Long       string
-	Mode       Mode
-	Examples   []string
-	Annotation luatools.LuaFuncAnnotation
-	fn         lua.LGFunction
+	Name     string
+	Short    string
+	Long     string
+	Mode     Mode
+	Examples []string
+	fn       lua.LGFunction
 }
 
 // An intermediate builder for creating a module
-type gluePlug struct {
+type glueplug struct {
 	name       string
 	short      string
 	long       string
@@ -55,40 +54,40 @@ type gluePlug struct {
 //	   Name("myModule").
 //	   Short("description").
 //	   Do(...)
-func (glue *Glue) Plug() *gluePlug {
-	return &gluePlug{
+func (glue *Glue) Plug() *glueplug {
+	return &glueplug{
 		glue: glue,
 		mode: DefaultMode,
 	}
 }
 
-func (plug *gluePlug) Name(name string) *gluePlug {
+func (plug *glueplug) Name(name string) *glueplug {
 	plug.name = name
 	return plug
 }
 
-func (plug *gluePlug) Short(short string) *gluePlug {
+func (plug *glueplug) Short(short string) *glueplug {
 	plug.short = short
 	return plug
 }
 
-func (plug *gluePlug) Long(lines ...string) *gluePlug {
+func (plug *glueplug) Long(lines ...string) *glueplug {
 	plug.long = strings.TrimSpace(strings.Join(lines, "\n"))
 	return plug
 }
 
-func (plug *gluePlug) Mode(mode Mode) *gluePlug {
+func (plug *glueplug) Mode(mode Mode) *glueplug {
 	plug.mode = mode
 	return plug
 }
 
-func (plug *gluePlug) Example(ex string) *gluePlug {
+func (plug *glueplug) Example(ex string) *glueplug {
 	plug.examples = append(plug.examples, ex)
 	return plug
 }
 
-func (plug *gluePlug) Arg(name string, valtype string, desc string) *gluePlug {
-	plug.annotation.Args = append(plug.annotation.Args, luatools.LuaArgAnnotation{
+func (plug *glueplug) Arg(name string, valtype string, desc string) *glueplug {
+	plug.annotation.Args = append(plug.annotation.Args, luatools.LuaFieldDesc{
 		Name: name,
 		Type: valtype,
 		Desc: desc,
@@ -96,15 +95,15 @@ func (plug *gluePlug) Arg(name string, valtype string, desc string) *gluePlug {
 	return plug
 }
 
-func (plug *gluePlug) Return(valtype string, desc string) *gluePlug {
-	plug.annotation.Returns = append(plug.annotation.Returns, luatools.LuaReturnAnnotation{
+func (plug *glueplug) Return(valtype string, desc string) *glueplug {
+	plug.annotation.Returns = append(plug.annotation.Returns, luatools.LuaReturnDesc{
 		Type: valtype,
 		Desc: desc,
 	})
 	return plug
 }
 
-func (plug *gluePlug) Do(fn lua.LGFunction) error {
+func (plug *glueplug) Do(fn lua.LGFunction) error {
 	if len(plug.name) == 0 {
 		return errors.New(
 			"Trying to install a module with empty name",
@@ -119,7 +118,7 @@ func (plug *gluePlug) Do(fn lua.LGFunction) error {
 		func(L *lua.LState) int {
 			glue.recordTrace(name, L)
 
-			if glue.DryRun && HasMode(mode, WRITE) {
+			if glue.DryRun && (HasMode(mode, WRITE) || HasMode(mode, NETWORK)) {
 				// When doing a dry run, we stub out the
 				// write methods with mocks
 				inputs := luatools.GetAllArgsAsStrings(L)
@@ -132,13 +131,13 @@ func (plug *gluePlug) Do(fn lua.LGFunction) error {
 			return fn(L)
 		})
 
-	err := luatools.SetNestedGlobalValue(
+	path, err := luatools.SetNestedGlobalValue(
 		glue.lstate,
 		name,
 		wrapped,
 	)
 
-	fmt.Println(err)
+	glue.Annotations.AddNestedTable(path)
 
 	if err != nil {
 		return err
@@ -150,16 +149,16 @@ func (plug *gluePlug) Do(fn lua.LGFunction) error {
 		Short:    plug.short,
 		Mode:     mode,
 		Examples: plug.examples,
-		Annotation: luatools.LuaFuncAnnotation{
-			Name:    name,
-			Args:    plug.annotation.Args,
-			Returns: plug.annotation.Returns,
-			Desc:    plug.short,
-		},
-		fn: fn,
+		fn:       fn,
 	}
 
 	glue.Modules = append(glue.Modules, mod)
+	glue.Annotations.Add(&luatools.LuaFuncAnnotation{
+		Name:    name,
+		Args:    plug.annotation.Args,
+		Returns: plug.annotation.Returns,
+		Desc:    plug.short,
+	})
 
 	return err
 }
