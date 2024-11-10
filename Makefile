@@ -11,11 +11,11 @@ build:
 
 example\:dry:
 	@echo "Select test folder to run:"
-	@select d in ./examples/*/; do test -n "$$d" && go run ./ --dry-run -p "$$d"; break; echo ">>> Invalid Selection"; done
+	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ --dry-run -p "./examples/$$d"; break; echo ">>> Invalid Selection"; done
 
 example:
 	@echo "Select test folder to run:"
-	@select d in ./examples/*/; do test -n "$$d" && go run ./ -p "$$d"; break; echo ">>> Invalid Selection"; done
+	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ -p "./examples/$$d"; break; echo ">>> Invalid Selection"; done
 
 document\:lua:
 	@go run ./ document --format lua
@@ -32,6 +32,9 @@ tidy:
 
 test:
 	ENV=test go test -json -v  ./...  | tparse -all
+
+test\:raw:
+	ENV=test go test -v  ./...
 
 clean:
 	find . -name "*~" -delete

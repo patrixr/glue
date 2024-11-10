@@ -32,6 +32,7 @@ type GlueModule struct {
 	Long     string
 	Mode     Mode
 	Examples []string
+	Bypass   bool
 	fn       lua.LGFunction
 }
 
@@ -44,6 +45,7 @@ type glueplug struct {
 	examples   []string
 	annotation luatools.LuaFuncAnnotation
 	glue       *Glue
+	bypass     bool
 }
 
 // Entry point for creating a new module
@@ -86,6 +88,11 @@ func (plug *glueplug) Example(ex string) *glueplug {
 	return plug
 }
 
+func (plug *glueplug) Bypass() *glueplug {
+	plug.bypass = true
+	return plug
+}
+
 func (plug *glueplug) Arg(name string, valtype string, desc string) *glueplug {
 	plug.annotation.Args = append(plug.annotation.Args, luatools.LuaFieldDesc{
 		Name: name,
@@ -113,18 +120,34 @@ func (plug *glueplug) Do(fn lua.LGFunction) error {
 	glue := plug.glue
 	name := plug.name
 	mode := plug.mode
+	bypass := plug.bypass
 
 	wrapped := glue.lstate.NewFunction(
 		func(L *lua.LState) int {
 			glue.recordTrace(name, L)
 
-			if glue.DryRun && (HasMode(mode, WRITE) || HasMode(mode, NETWORK)) {
-				// When doing a dry run, we stub out the
-				// write methods with mocks
+			if bypass {
+				return fn(L)
+			}
+
+			active, err := glue.AtActiveLevel()
+
+			if err != nil {
+				L.RaiseError(err.Error())
+				return 0
+			}
+
+			skip := !active || glue.DryRun
+
+			if glue.DryRun && active {
 				inputs := luatools.GetAllArgsAsStrings(L)
 				text := fmt.Sprintf(
 					"(mocked) %s(%s)", name, strings.Join(inputs, ", "))
 				glue.Log.Info(text)
+			}
+
+			// We don't run functions in dry mode or when the current nesting level is not active
+			if skip {
 				return 0
 			}
 

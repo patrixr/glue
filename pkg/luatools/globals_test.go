@@ -53,7 +53,7 @@ func TestSetNestedGlobalValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := SetNestedGlobalValue(L, tt.path, tt.value)
+			_, err := SetNestedGlobalValue(L, tt.path, tt.value)
 			assert.NoError(t, err)
 
 			// Verify that the value was set correctly
@@ -83,7 +83,9 @@ func TestSetNestedGlobalValue(t *testing.T) {
 		L := lua.NewState()
 		defer L.Close()
 
-		assert.NoError(t, SetNestedGlobalValue(L, "rootkey", lua.LString("hi")))
-		assert.Error(t, SetNestedGlobalValue(L, "rootkey.subkey", lua.LString("hi again")))
+		_, err := SetNestedGlobalValue(L, "rootkey", lua.LString("hi"))
+		assert.NoError(t, err)
+		_, err = SetNestedGlobalValue(L, "rootkey.subkey", lua.LString("hi again"))
+		assert.Error(t, err)
 	})
 }

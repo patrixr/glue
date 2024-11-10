@@ -14,6 +14,7 @@ type Glue struct {
 	beforeScriptFuncs []func() error
 	lstate            *lua.LState
 	fileStack         []string
+	nesting           []string
 
 	ExecutionTrace []FunctionCall
 	DryRun         bool
@@ -22,10 +23,12 @@ type Glue struct {
 	Unsafe         bool
 	Modules        []*GlueModule
 	Annotations    luatools.LuaAnnotations
+	UserSelector   Selector
 }
 
 type GlueOptions struct {
-	DryRun bool
+	DryRun   bool
+	Selector string
 }
 
 type FunctionCall struct {
@@ -47,12 +50,15 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 	})
 
 	glue := &Glue{
-		DryRun: options.DryRun,
-		lstate: L,
-		Log:    logger,
+		DryRun:       options.DryRun,
+		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
+		Log:          logger,
+
+		lstate:  L,
+		nesting: []string{RootLevel},
 	}
 
-	installNativeGlueModules(glue)
+	InstallNativeGlueModules(glue)
 
 	return glue
 }
@@ -71,6 +77,10 @@ func (glue *Glue) Execute(file string) error {
 	}
 
 	return glue.RunAfterScript()
+}
+
+func (glue *Glue) AtActiveLevel() (bool, error) {
+	return glue.UserSelector.Test(glue.nesting)
 }
 
 func (glue *Glue) ExecuteString(script string) error {

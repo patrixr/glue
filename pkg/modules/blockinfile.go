@@ -15,6 +15,7 @@ import (
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Annotations.AddClass("BlockinfileParams").
+			Field("path", "string", "the file to insert the block into").
 			Field("block", "string", "the multi-line text block to be inserted or updated").
 			Field("insertafter?", "string", "the multi-line text block to be inserted or updated").
 			Field("insertbefore?", "string", "the multi-line text block to be inserted or updated").

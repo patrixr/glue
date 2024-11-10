@@ -2,6 +2,7 @@ package modules
 
 import (
 	"os"
+	"strings"
 
 	"github.com/patrixr/glue/pkg/core"
 	"github.com/patrixr/glue/pkg/luatools"
@@ -26,7 +27,7 @@ func UtilitiesMod(glue *core.Glue) error {
 	})
 
 	trim := luatools.StrInStrOutFunc(func(s string) (string, error) {
-		return q.TrimIndent(s), nil
+		return strings.TrimSpace(q.TrimIndent(s)), nil
 	})
 
 	glue.Plug().
@@ -50,6 +51,7 @@ func UtilitiesMod(glue *core.Glue) error {
 		Short("Trims the extra indentation of a multi-line string").
 		Long("Trims the extra indentation of a multi-line string").
 		Arg("txt", "string", "the text to trim").
+		Return("string", "the trimmed text").
 		Example("trim(text)").
 		Mode(core.NONE).
 		Do(trim)
