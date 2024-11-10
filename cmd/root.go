@@ -70,10 +70,10 @@ func Execute() {
 
 func init() {
 	xCmd := &cobra.Command{
-		Use:   "x",
-		Short: "Execute Glue with a selector",
+		Use:   "only",
+		Short: "Execute Glue only on a subset of groups using a selector",
 		Long: `Glue allows nested groups of execution blocks.
-The x command allows us to only run a subset of these groups using a selector argument`,
+The 'only' command allows us to only run a subset of these groups using a selector argument`,
 		Args: cobra.MatchAll(cobra.ExactArgs(1)),
 		Run: func(cmd *cobra.Command, args []string) {
 			run(cmd, args[0])
