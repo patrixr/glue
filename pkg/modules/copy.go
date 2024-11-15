@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	cp "github.com/otiai10/copy"
 	"github.com/patrixr/glue/pkg/core"
@@ -25,19 +24,22 @@ func init() {
 			Long("Copies").
 			Arg("opts", "CopyOpts", "the copy options").
 			Do(luatools.TableFunc[CopyOpts](func(opts CopyOpts) error {
-				wd, err := glue.Getwd()
+				dest, err := glue.SmartPath(opts.Dest)
 
 				if err != nil {
 					return err
 				}
 
-				if !filepath.IsAbs(opts.Source) {
-					opts.Source = filepath.Join(wd, opts.Source)
+				src, err := glue.SmartPath(opts.Source)
+
+				if err != nil {
+					return err
 				}
 
-				if !filepath.IsAbs(opts.Dest) {
-					opts.Dest = filepath.Join(wd, opts.Dest)
-				}
+				glue.Log.Info("[Copy]", "src", opts.Source, "dst", opts.Dest)
+
+				opts.Dest = dest
+				opts.Source = src
 
 				return Copy(opts)
 			}))

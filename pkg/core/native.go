@@ -18,7 +18,7 @@ func InstallNativeGlueModules(glue *Glue) {
 	}
 
 	glue.Plug().
-		Name("glue.run").
+		Name("glue").
 		Short("Run a glue script").
 		Arg("glue_file", "string", "the glue file to run").
 		Do(luatools.StrFunc(func(file string) error {
@@ -71,6 +71,16 @@ func InstallNativeGlueModules(glue *Glue) {
 			defer func() {
 				glue.nesting = pop(glue.nesting)
 			}()
+
+			active, err := glue.AtActiveLevel()
+
+			if err != nil {
+				return err
+			}
+
+			if active {
+				glue.Log.Info("[%s]", strings.Join(glue.nesting[1:], " > "))
+			}
 
 			return fn()
 		}))

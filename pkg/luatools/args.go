@@ -2,6 +2,8 @@ package luatools
 
 import lua "github.com/yuin/gopher-lua"
 
+const EmptyLuaString = lua.LString("")
+
 func GetArgAsString(L *lua.LState, index int) string {
 	return L.ToStringMeta(L.Get(index)).String()
 }

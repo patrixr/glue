@@ -27,13 +27,14 @@ func HasMode(b, flag Mode) bool {
 // A representation of a module
 // Modules can be installed into the Lua state
 type GlueModule struct {
-	Name     string
-	Short    string
-	Long     string
-	Mode     Mode
-	Examples []string
-	Bypass   bool
-	fn       lua.LGFunction
+	Name       string
+	Short      string
+	Long       string
+	Mode       Mode
+	Examples   []string
+	Bypass     bool
+	fn         luatools.LuaFuncWithError
+	mockReturn []lua.LValue
 }
 
 // An intermediate builder for creating a module
@@ -46,6 +47,7 @@ type glueplug struct {
 	annotation luatools.LuaFuncAnnotation
 	glue       *Glue
 	bypass     bool
+	mockReturn []lua.LValue
 }
 
 // Entry point for creating a new module
@@ -110,7 +112,12 @@ func (plug *glueplug) Return(valtype string, desc string) *glueplug {
 	return plug
 }
 
-func (plug *glueplug) Do(fn lua.LGFunction) error {
+func (plug *glueplug) MockReturn(returnArgs ...lua.LValue) *glueplug {
+	plug.mockReturn = returnArgs
+	return plug
+}
+
+func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 	if len(plug.name) == 0 {
 		return errors.New(
 			"Trying to install a module with empty name",
@@ -124,34 +131,41 @@ func (plug *glueplug) Do(fn lua.LGFunction) error {
 
 	wrapped := glue.lstate.NewFunction(
 		func(L *lua.LState) int {
-			glue.recordTrace(name, L)
+			if !bypass {
+				active, err := glue.AtActiveLevel()
 
-			if bypass {
-				return fn(L)
+				if err != nil {
+					L.RaiseError(err.Error())
+					return 0
+				}
+
+				skip := !active || glue.DryRun
+
+				if glue.DryRun && active {
+					inputs := luatools.GetAllArgsAsStrings(L)
+					text := fmt.Sprintf(
+						"(mocked) %s(%s)", name, strings.Join(inputs, ", "))
+					glue.Log.Info(text)
+				}
+
+				// We don't run functions in dry mode or when the current nesting level is not active
+				if skip {
+					for _, arg := range plug.mockReturn {
+						L.Push(arg)
+					}
+					return len(plug.mockReturn)
+				}
 			}
 
-			active, err := glue.AtActiveLevel()
+			res, err := fn(L)
 
-			if err != nil {
-				L.RaiseError(err.Error())
-				return 0
+			glue.recordTrace(name, L, err)
+
+			if err != nil && glue.FailFast {
+				L.RaiseError(err.Error()) // boom
 			}
 
-			skip := !active || glue.DryRun
-
-			if glue.DryRun && active {
-				inputs := luatools.GetAllArgsAsStrings(L)
-				text := fmt.Sprintf(
-					"(mocked) %s(%s)", name, strings.Join(inputs, ", "))
-				glue.Log.Info(text)
-			}
-
-			// We don't run functions in dry mode or when the current nesting level is not active
-			if skip {
-				return 0
-			}
-
-			return fn(L)
+			return res
 		})
 
 	path, err := luatools.SetNestedGlobalValue(
@@ -186,10 +200,10 @@ func (plug *glueplug) Do(fn lua.LGFunction) error {
 	return err
 }
 
-func (glue *Glue) recordTrace(name string, L *lua.LState) {
-	glue.ExecutionTrace = append(
-		glue.ExecutionTrace, FunctionCall{
-			name,
-			luatools.GetAllArgsAsStrings(L),
-		})
+func (glue *Glue) recordTrace(name string, L *lua.LState, err error) {
+	glue.ExecutionTrace = append(glue.ExecutionTrace, Trace{
+		Name:  name,
+		Args:  luatools.GetAllArgsAsStrings(L),
+		Error: err,
+	})
 }

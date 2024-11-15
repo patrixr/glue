@@ -49,59 +49,71 @@ func HomebrewMod(glue *core.Glue) error {
 		return brew.Install()
 	})
 
+	upgrade := luatools.Func(func() error {
+		return brew.Upgrade()
+	})
+
 	glue.Plug().
-		Name("brew.ensure").
+		Name("homebrew_install").
 		Short("Installs Homebrew if not already installed").
-		Example("brew.ensure()").
+		Example("homebrew_install()").
 		Do(ensure)
 
 	glue.Plug().
-		Name("brew.package").
+		Name("homebrew").
 		Short("Marks a homebrew package for installation").
 		Arg("pkg", "string", "the name of the package to install").
-		Example("brew.package('git')").
-		Example("brew.package('zsh)").
-		Example("brew.sync()").
+		Example("homebrew('git')").
+		Example("homebrew('zsh)").
+		Example("homebrew(\"package\")").
+		Example("homebrew_sync()").
 		Do(pkg)
 
 	glue.Plug().
-		Name("brew.cask").
+		Name("homebrew_cask").
 		Short("Marks a cask for installation").
 		Arg("pkg", "string", "the name of the cask to install").
-		Example("brew.cask('firefox')").
-		Example("brew.cask('spotify')").
-		Example("brew.sync()").
+		Example("homebrew_cask('firefox')").
+		Example("homebrew_cask('spotify')").
+		Example("homebrew_sync()").
 		Do(cask)
 
 	glue.Plug().
-		Name("brew.tap").
+		Name("homebrew_tap").
 		Short("Marks a homebrew tap for installation").
 		Arg("tap", "string", "the name of the tap to install").
-		Example("brew.tap('homebrew/cask')").
+		Example("homebrew_tap('homebrew/cask')").
 		Do(tap)
 
 	glue.Plug().
-		Name("brew.mas").
+		Name("homebrew_mas").
 		Short("Marks a Mac App Store package for installation").
 		Arg("name", "string", "the name of the mas to install").
-		Example("brew.mas('1Password')").
-		Example("brew.mas('Slack')").
-		Example("brew.sync()").
+		Example("homebrew_mas('1Password')").
+		Example("homebrew_mas('Slack')").
+		Example("homebrew_sync()").
 		Do(mas)
 
 	glue.Plug().
-		Name("brew.whalebrew").
+		Name("homebrew_whalebrew").
 		Short("Marks a whalebrew package for installation").
 		Arg("name", "string", "the name of the whalebrew to install").
-		Example("brew.whalebrew('whalebrew/awscli'").
-		Example("brew.whalebrew('whalebrew/ffmpeg')").
+		Example("homebrew_whalebrew('whalebrew/awscli'").
+		Example("homebrew_whalebrew('whalebrew/ffmpeg')").
+		Example("homebrew_sync()").
 		Do(whalebrew)
 
 	glue.Plug().
-		Name("brew.sync").
+		Name("homebrew_sync").
 		Short("Installs all marked packages").
-		Example("brew.sync()").
+		Example("homebrew_sync()").
 		Do(sync)
+
+	glue.Plug().
+		Name("homebrew_upgrade").
+		Short("Upgrades all homebrew packages").
+		Example("homebrew_upgrade()").
+		Do(upgrade)
 
 	return nil
 }

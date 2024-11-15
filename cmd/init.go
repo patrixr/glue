@@ -85,6 +85,8 @@ by creating a script file for you to configure your system
 			glue.Log.Info("Glue script initialized at " + glueScript)
 		}
 
+		glue.Log.Info("Updating lsp configuration")
+
 		// Create lib with metadata
 		luarcFile := filepath.Join(glueFolder, ".luarc.json")
 		libFolder := filepath.Join(glueFolder, "lib")
@@ -105,6 +107,9 @@ by creating a script file for you to configure your system
 		assert(err, "Failed to marshal luarc into JSON")
 
 		assert(os.WriteFile(luarcFile, []byte(json), 0644), "Failed to save luarc file")
+
+		glue.Log.Info("Luarc file created")
+		glue.Log.Info("Lib folder created")
 	},
 }
 

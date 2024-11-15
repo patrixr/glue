@@ -57,3 +57,7 @@ func (h *Homebrew) Install() error {
 
 	return shell.Run(fmt.Sprintf("brew bundle --file=%s --no-lock", tmp.Name()), os.Stdout, os.Stderr)
 }
+
+func (h *Homebrew) Upgrade() error {
+	return shell.Run("brew upgrade", os.Stdout, os.Stderr)
+}

@@ -50,6 +50,18 @@ func run(cmd *cobra.Command, selector string) {
 		glue.Log.Error(err)
 		os.Exit(1)
 	}
+
+	success, traces := glue.Result()
+
+	if !success {
+		for _, trace := range traces {
+			glue.Log.Error(trace.Name, "error", trace.Error)
+		}
+		glue.Log.Info(`Glue has ended  with errors`)
+		os.Exit(1)
+	}
+
+	glue.Log.Info("Glue completed successfully")
 }
 
 var rootCmd = &cobra.Command{
@@ -69,7 +81,7 @@ func Execute() {
 }
 
 func init() {
-	xCmd := &cobra.Command{
+	onlyCmd := &cobra.Command{
 		Use:   "only",
 		Short: "Execute Glue only on a subset of groups using a selector",
 		Long: `Glue allows nested groups of execution blocks.
@@ -81,7 +93,7 @@ The 'only' command allows us to only run a subset of these groups using a select
 	}
 
 	cmds := []*cobra.Command{
-		xCmd,
+		onlyCmd,
 		rootCmd,
 	}
 
@@ -91,5 +103,5 @@ The 'only' command allows us to only run a subset of these groups using a select
 			"dry-run", "d", false, "See the execution flow without running anything")
 	}
 
-	rootCmd.AddCommand(xCmd)
+	rootCmd.AddCommand(onlyCmd)
 }

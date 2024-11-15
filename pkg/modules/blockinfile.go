@@ -3,7 +3,6 @@ package modules
 import (
 	"io"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -51,8 +50,8 @@ func init() {
 					Insertafter = "pattern to insert after",
 					Insertbefore = "pattern to insert before",
 					Marker = "# {mark}",
-					Markerbegin = "BEGIN CUSTOM BLOCK",
-					Markerend = "END CUSTOM BLOCK",
+					Markerbegin = "BEGIN GLUE CUSTOM BLOCK",
+					Markerend = "END GLUE CUSTOM BLOCK",
 					State = true,
 					Backup = true,
 					Create = true,
@@ -63,19 +62,17 @@ func init() {
 				})
 			`)).
 			Do(luatools.TableFunc(func(props BlockOpts) error {
-				path := props.Path
+				path, err := glue.SmartPath(props.Path)
 
-				if !filepath.IsAbs(path) {
-					wd, err := glue.Getwd()
-
-					if err != nil {
-						return err
-					}
-
-					props.Path = filepath.Join(wd, path)
+				if err != nil {
+					return err
 				}
 
-				return BlockInFile(props)
+				props.Path = path
+
+				err = BlockInFile(props)
+
+				return err
 			}))
 
 		return nil
@@ -83,8 +80,8 @@ func init() {
 }
 
 const defaultMarker = "# {mark}"
-const defaultMarkerBegin = "BEGIN MANAGED BLOCK"
-const defaultMarkerEnd = "END MANAGED BLOCK"
+const defaultMarkerBegin = "BEGIN GLUE MANAGED BLOCK"
+const defaultMarkerEnd = "END GLUE MANAGED BLOCK"
 
 type BlockOpts struct {
 	Block        string `json:"block"`

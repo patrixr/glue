@@ -13,12 +13,5 @@ func Run(input string, stdout io.Writer, stderr io.Writer) error {
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	defer cmd.Wait()
-
-	return nil
+	return cmd.Run()
 }

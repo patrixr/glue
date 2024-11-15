@@ -4,8 +4,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/patrixr/glue/pkg/luatools"
+	"github.com/patrixr/q"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -16,7 +18,7 @@ type Glue struct {
 	fileStack         []string
 	nesting           []string
 
-	ExecutionTrace []FunctionCall
+	ExecutionTrace []Trace
 	DryRun         bool
 	Log            *GlueLogger
 	Done           bool
@@ -24,6 +26,7 @@ type Glue struct {
 	Modules        []*GlueModule
 	Annotations    luatools.LuaAnnotations
 	UserSelector   Selector
+	FailFast       bool
 }
 
 type GlueOptions struct {
@@ -31,9 +34,10 @@ type GlueOptions struct {
 	Selector string
 }
 
-type FunctionCall struct {
-	Name string
-	Args []string
+type Trace struct {
+	Name  string
+	Args  []string
+	Error error
 }
 
 func NewGlue() *Glue {
@@ -49,13 +53,15 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 		SkipOpenLibs: true,
 	})
 
+	if err := luatools.LoadSafeLibs(L); err != nil {
+		panic(err.Error())
+	}
+
 	glue := &Glue{
 		DryRun:       options.DryRun,
 		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
 		Log:          logger,
-
-		lstate:  L,
-		nesting: []string{RootLevel},
+		lstate:       L,
 	}
 
 	InstallNativeGlueModules(glue)
@@ -79,6 +85,10 @@ func (glue *Glue) Execute(file string) error {
 	return glue.RunAfterScript()
 }
 
+func (glue *Glue) NotifyError(err error) {
+	glue.lstate.RaiseError(err.Error())
+}
+
 func (glue *Glue) AtActiveLevel() (bool, error) {
 	return glue.UserSelector.Test(glue.nesting)
 }
@@ -100,10 +110,17 @@ func (glue *Glue) ExecuteString(script string) error {
 }
 
 func (glue *Glue) RunFileRaw(file string) error {
+	nesting := glue.nesting
+
 	glue.fileStack = append(glue.fileStack, file)
-	err := glue.lstate.DoFile(file)
-	glue.fileStack = glue.fileStack[:len(glue.fileStack)-1]
-	return err
+	glue.nesting = []string{RootLevel}
+
+	defer func() {
+		glue.fileStack = glue.fileStack[:len(glue.fileStack)-1]
+		glue.nesting = nesting
+	}()
+
+	return glue.lstate.DoFile(file)
 }
 
 func (glue *Glue) GetCurrentScript() (string, error) {
@@ -120,6 +137,32 @@ func (glue *Glue) Getwd() (string, error) {
 		return filepath.Dir(current), nil
 	}
 	return os.Getwd()
+}
+
+func (glue *Glue) SmartPath(path string) (string, error) {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	if path == "~" {
+		return homedir, nil
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(homedir, path[2:]), nil
+	}
+
+	if filepath.IsAbs(path) {
+		return path, nil
+	}
+
+	wd, err := glue.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(wd, path), nil
 }
 
 func (glue *Glue) Close() {
@@ -141,6 +184,14 @@ func (glue *Glue) RunBeforeScript() error {
 
 func (glue *Glue) RunAfterScript() error {
 	return runAll(glue.afterScriptFuncs)
+}
+
+func (glue *Glue) Result() (bool, []Trace) {
+	failedTraces := q.Filter(glue.ExecutionTrace, func(trace Trace) bool {
+		return trace.Error != nil
+	})
+
+	return len(failedTraces) == 0, failedTraces
 }
 
 func runAll(funcs []func() error) error {

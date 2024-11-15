@@ -26,9 +26,9 @@ func TestBlockInString(t *testing.T) {
 			input: q.Paragraph(`
 			    line 1
 			    line 2
-			    # BEGIN MANAGED BLOCK
+			    # BEGIN GLUE MANAGED BLOCK
 			    Test Block
-			    # END MANAGED BLOCK
+			    # END GLUE MANAGED BLOCK
 			    line 3
 		    `),
 			output: q.Paragraph(`
@@ -68,17 +68,17 @@ func TestBlockInString(t *testing.T) {
 			input: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Something else
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			output: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			props: modules.BlockOpts{
@@ -91,16 +91,16 @@ func TestBlockInString(t *testing.T) {
 			input: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
-				# END MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			output: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			props: modules.BlockOpts{
@@ -118,9 +118,9 @@ func TestBlockInString(t *testing.T) {
 				line 1
 				line 2
 				line 3
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 		    `),
 			props: modules.BlockOpts{
 				Block: "Test Block",
@@ -137,9 +137,9 @@ func TestBlockInString(t *testing.T) {
 			output: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			props: modules.BlockOpts{
@@ -159,9 +159,9 @@ func TestBlockInString(t *testing.T) {
 				line 1
 				line 2
 				line 3
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 		    `),
 			props: modules.BlockOpts{
 				Block:       "Test Block",
@@ -179,9 +179,9 @@ func TestBlockInString(t *testing.T) {
 			output: q.Paragraph(`
 				line 1
 				line 2
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 3
 		    `),
 			props: modules.BlockOpts{
@@ -199,9 +199,9 @@ func TestBlockInString(t *testing.T) {
 		    `),
 			output: q.Paragraph(`
 				line 1
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 				line 2
 				line 3
 		    `),
@@ -310,9 +310,9 @@ func TestBlockInString(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t,
 			q.Paragraph(`
-				# BEGIN MANAGED BLOCK
+				# BEGIN GLUE MANAGED BLOCK
 				Test Block
-				# END MANAGED BLOCK
+				# END GLUE MANAGED BLOCK
 			`),
 			string(content))
 	})
