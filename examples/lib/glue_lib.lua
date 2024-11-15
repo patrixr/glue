@@ -1,14 +1,11 @@
 --@meta
-glue = {
-}
-
 ---
 --- Run a glue script
 ---
 ---@param glue_file string the glue file to run
 ---
 ---
-function glue.run(glue_file) end
+function glue(glue_file) end
 
 ---
 --- Create a runnable group
@@ -63,15 +60,12 @@ function blockinfile(block_params) end
 ---
 function copy(opts) end
 
-brew = {
-}
-
 ---
 --- Installs Homebrew if not already installed
 ---
 ---
 ---
-function brew.ensure() end
+function homebrew_install() end
 
 ---
 --- Marks a homebrew package for installation
@@ -79,7 +73,7 @@ function brew.ensure() end
 ---@param pkg string the name of the package to install
 ---
 ---
-function brew.package(pkg) end
+function homebrew(pkg) end
 
 ---
 --- Marks a cask for installation
@@ -87,7 +81,7 @@ function brew.package(pkg) end
 ---@param pkg string the name of the cask to install
 ---
 ---
-function brew.cask(pkg) end
+function homebrew_cask(pkg) end
 
 ---
 --- Marks a homebrew tap for installation
@@ -95,7 +89,7 @@ function brew.cask(pkg) end
 ---@param tap string the name of the tap to install
 ---
 ---
-function brew.tap(tap) end
+function homebrew_tap(tap) end
 
 ---
 --- Marks a Mac App Store package for installation
@@ -103,7 +97,7 @@ function brew.tap(tap) end
 ---@param name string the name of the mas to install
 ---
 ---
-function brew.mas(name) end
+function homebrew_mas(name) end
 
 ---
 --- Marks a whalebrew package for installation
@@ -111,14 +105,21 @@ function brew.mas(name) end
 ---@param name string the name of the whalebrew to install
 ---
 ---
-function brew.whalebrew(name) end
+function homebrew_whalebrew(name) end
 
 ---
 --- Installs all marked packages
 ---
 ---
 ---
-function brew.sync() end
+function homebrew_sync() end
+
+---
+--- Upgrades all homebrew packages
+---
+---
+---
+function homebrew_upgrade() end
 
 ---
 --- Run a shell command
@@ -144,5 +145,14 @@ function print(obj) end
 ---@return string the trimmed text
 ---
 function trim(txt) end
+
+---
+--- Reads a file as a string
+---
+---@param path string the path of the file to read
+---
+---@return string the file content
+---
+function read(path) end
 
 

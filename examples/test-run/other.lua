@@ -1,3 +1,3 @@
 print("another file")
 
-glue.run("third.lua")
+glue("third.lua")
