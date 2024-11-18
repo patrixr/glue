@@ -67,7 +67,7 @@ by creating a script file for you to configure your system
 				boom("Expected a directory as argument")
 			}
 		} else {
-			glueFolder, err = core.DefaultGlueFolder()
+			glueFolder, err = core.GlueHome()
 
 			if err != nil {
 				boom("Unable to initialize glue in folder")

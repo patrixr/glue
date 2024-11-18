@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/patrixr/glue/pkg/core"
 )
 
@@ -33,49 +34,18 @@ func GenerateMarkdownDocumentation(glue *core.Glue) string {
 		builder.WriteString(fmt.Sprintf("- `%s`: %s\n", mod.Name, mod.Short))
 	}
 
-	return builder.String()
+	doc := builder.String()
+	prettified, err := glamour.Render(doc, "dark")
+
+	if err != nil {
+		return doc
+	}
+
+	return prettified
 }
 
 func GenerateLuaDocumentation(glue *core.Glue) string {
 	var builder strings.Builder
-	// var globals *q.Node[string] = q.Tree[string]("root")
-
-	// builder.WriteString("---@meta\n\n")
-
-	// for _, mod := range glue.Modules {
-	// 	nestedKeys := strings.Split(mod.Name, ".")
-
-	// 	if len(nestedKeys) <= 1 {
-	// 		continue
-	// 	}
-
-	// 	node := globals
-	// 	for _, key := range nestedKeys[:len(nestedKeys)] {
-	// 		child := node.FindChild(func(s string) bool {
-	// 			return s == key
-	// 		})
-
-	// 		if child == nil {
-	// 			child = node.Add(key)
-	// 		}
-
-	// 		node = child
-	// 	}
-	// }
-
-	// var traverse func(ref *q.Node[string], level int)
-
-	// traverse = func(ref *q.Node[string], level int) {
-	// 	builder.WriteString(fmt.Sprintf("%s%s = {\n", strings.Repeat("  ", level), ref.Data))
-	// 	for _, child := range ref.Children {
-	// 		traverse(child, level+1)
-	// 	}
-	// 	builder.WriteString(fmt.Sprintf("%s}\n", strings.Repeat("  ", level)))
-	// }
-
-	// for _, global := range globals.Children {
-	// 	traverse(global, 0)
-	// }
 
 	builder.WriteString(glue.Annotations.Render())
 	builder.WriteString("\n")
