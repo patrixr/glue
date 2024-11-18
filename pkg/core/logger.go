@@ -1,9 +1,11 @@
 package core
 
 import (
+	"io"
 	"os"
 
 	"github.com/charmbracelet/log"
+	"github.com/muesli/termenv"
 )
 
 type Logger interface {
@@ -21,8 +23,18 @@ type GlueLogger struct {
 	errLog *log.Logger
 	stdLog *log.Logger
 
-	Stdout *os.File
-	Stderr *os.File
+	Stdout GlueWriter
+	Stderr GlueWriter
+}
+
+func (gl *GlueLogger) Loud() {
+	gl.Stderr.Loud = true
+	gl.Stdout.Loud = true
+}
+
+func (gl *GlueLogger) Quiet() {
+	gl.Stderr.Loud = false
+	gl.Stdout.Loud = false
 }
 
 func (gl *GlueLogger) Info(msg interface{}, keyvals ...interface{}) {
@@ -58,15 +70,40 @@ func (gl *GlueLogger) Errorf(format string, args ...interface{}) {
 }
 
 func CreateLogger() *GlueLogger {
+	writer := CreateGlueWriter(os.Stdout)
+	writerErr := CreateGlueWriter(os.Stderr)
+
 	options := log.Options{
 		ReportTimestamp: true,
 	}
 
-	errLog := log.NewWithOptions(os.Stderr, options)
-	stdLog := log.NewWithOptions(os.Stdout, options)
+	errLog := log.NewWithOptions(writerErr, options)
+	stdLog := log.NewWithOptions(writer, options)
+
+	stdLog.SetColorProfile(termenv.TrueColor)
+	errLog.SetColorProfile(termenv.TrueColor)
 
 	return &GlueLogger{
 		errLog, stdLog,
-		os.Stdout, os.Stderr,
+		writer, writerErr,
 	}
+}
+
+type GlueWriter struct {
+	Loud      bool
+	OutWriter io.Writer
+}
+
+func CreateGlueWriter(std io.Writer) GlueWriter {
+	return GlueWriter{
+		OutWriter: std,
+		Loud:      true,
+	}
+}
+
+func (gw GlueWriter) Write(p []byte) (n int, err error) {
+	if gw.Loud {
+		return gw.OutWriter.Write(p)
+	}
+	return 0, nil
 }

@@ -2,6 +2,7 @@ package homebrew
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"time"
@@ -15,10 +16,12 @@ type Row struct {
 }
 
 type Homebrew struct {
-	rows []Row
+	rows   []Row
+	stdout io.Writer
+	stderr io.Writer
 }
 
-func NewHomebrew() *Homebrew {
+func NewHomebrew(stdout io.Writer, stderr io.Writer) *Homebrew {
 	return &Homebrew{}
 }
 
@@ -55,9 +58,9 @@ func (h *Homebrew) Install() error {
 		tmp.WriteString(fmt.Sprintf("%s \"%s\"\n", row.kind, row.name))
 	}
 
-	return shell.Run(fmt.Sprintf("brew bundle --file=%s --no-lock", tmp.Name()), os.Stdout, os.Stderr)
+	return shell.Run(fmt.Sprintf("brew bundle --file=%s --no-lock", tmp.Name()), h.stdout, h.stderr)
 }
 
 func (h *Homebrew) Upgrade() error {
-	return shell.Run("brew upgrade", os.Stdout, os.Stderr)
+	return shell.Run("brew upgrade", h.stdout, h.stderr)
 }

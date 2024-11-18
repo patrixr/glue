@@ -79,7 +79,7 @@ func InstallNativeGlueModules(glue *Glue) {
 			}
 
 			if active {
-				glue.Log.Info("[%s]", strings.Join(glue.nesting[1:], " > "))
+				glue.Log.Info("[Group]", "path", strings.Join(glue.nesting[1:], "."))
 			}
 
 			return fn()

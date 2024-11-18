@@ -11,9 +11,15 @@ func init() {
 }
 
 func HomebrewMod(glue *core.Glue) error {
-	brew := homebrew.NewHomebrew()
+	brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
 	ensure := luatools.Func(func() error {
+		if !glue.Verbose {
+			glue.Log.Quiet()
+		}
+
+		defer glue.Log.Loud()
+
 		if err := homebrew.InstallHomebrew(glue.Log.Stdout, glue.Log.Stderr); err != nil {
 			return err
 		}
@@ -46,10 +52,22 @@ func HomebrewMod(glue *core.Glue) error {
 	})
 
 	sync := luatools.Func(func() error {
+		if !glue.Verbose {
+			glue.Log.Quiet()
+		}
+
+		defer glue.Log.Loud()
+
 		return brew.Install()
 	})
 
 	upgrade := luatools.Func(func() error {
+		if !glue.Verbose {
+			glue.Log.Quiet()
+		}
+
+		defer glue.Log.Loud()
+
 		return brew.Upgrade()
 	})
 

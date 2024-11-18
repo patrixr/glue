@@ -23,7 +23,13 @@ func UtilitiesMod(glue *core.Glue) error {
 	}
 
 	sh := luatools.StrFunc(func(cmd string) error {
-		return shell.Run(cmd, os.Stdout, os.Stderr)
+		if !glue.Verbose {
+			glue.Log.Quiet()
+		}
+
+		defer glue.Log.Loud()
+
+		return shell.Run(cmd, glue.Log.Stdout, glue.Log.Stderr)
 	})
 
 	trim := luatools.StrInStrOutFunc(func(s string) (string, error) {

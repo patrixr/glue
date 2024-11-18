@@ -14,11 +14,13 @@ import (
 
 func run(cmd *cobra.Command, selector string) {
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	verbose, _ := cmd.Flags().GetBool("verbose")
 	path, _ := cmd.Flags().GetString("path")
 
 	glue := core.NewGlueWithOptions(core.GlueOptions{
 		DryRun:   dryRun,
 		Selector: selector,
+		Verbose:  verbose,
 	})
 
 	defer glue.Close()
@@ -99,6 +101,7 @@ The 'only' command allows us to only run a subset of these groups using a select
 
 	for _, cmd := range cmds {
 		cmd.Flags().StringP("path", "p", "", "Directory or file to look for glue.lua")
+		cmd.Flags().BoolP("verbose", "v", false, "Enable verbose mode")
 		cmd.Flags().BoolP(
 			"dry-run", "d", false, "See the execution flow without running anything")
 	}

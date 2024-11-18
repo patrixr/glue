@@ -20,6 +20,7 @@ type Glue struct {
 
 	ExecutionTrace []Trace
 	DryRun         bool
+	Verbose        bool
 	Log            *GlueLogger
 	Done           bool
 	Unsafe         bool
@@ -32,6 +33,7 @@ type Glue struct {
 type GlueOptions struct {
 	DryRun   bool
 	Selector string
+	Verbose  bool
 }
 
 type Trace struct {
@@ -59,6 +61,7 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 
 	glue := &Glue{
 		DryRun:       options.DryRun,
+		Verbose:      options.Verbose,
 		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
 		Log:          logger,
 		lstate:       L,
