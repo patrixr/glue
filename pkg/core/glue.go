@@ -189,12 +189,12 @@ func (glue *Glue) RunAfterScript() error {
 	return runAll(glue.afterScriptFuncs)
 }
 
-func (glue *Glue) Result() (bool, []Trace) {
+func (glue *Glue) Result() (bool, int, []Trace) {
 	failedTraces := q.Filter(glue.ExecutionTrace, func(trace Trace) bool {
 		return trace.Error != nil
 	})
 
-	return len(failedTraces) == 0, glue.ExecutionTrace
+	return len(failedTraces) == 0, len(failedTraces), glue.ExecutionTrace
 }
 
 func runAll(funcs []func() error) error {

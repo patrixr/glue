@@ -83,7 +83,6 @@ func TableFunc[T any](f func(params T) error) LuaFuncWithError {
 		}
 
 		if err := f(data); err != nil {
-			L.RaiseError(err.Error())
 			return 0, err
 		}
 

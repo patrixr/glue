@@ -54,7 +54,7 @@ func run(cmd *cobra.Command, selector string) {
 		os.Exit(1)
 	}
 
-	success, _ := glue.Result()
+	success, _, _ := glue.Result()
 
 	fmt.Println(docs.GenerateResultReport(glue))
 

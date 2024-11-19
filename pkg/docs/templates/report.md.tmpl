@@ -3,5 +3,11 @@
 | Step | Module | Success | Details |
 | :------: | :------: | :-------: | :------: |
 {{- range $i, $t := .Traces}}
-| {{add $i 1}} | __{{.Name}}__ | {{if .Error}} 🚩 {{else}} ✅ {{end}} | {{if .Error}} {{ .Error }} {{else}} - {{end}} |
+| {{add $i 1}} | __{{.Name}}__ | {{if .Error}} 🚩 {{else}} ✅ {{end}} | {{if .Error}} {{ellipsis (errorstr .Error) }} {{else}} - {{end}} |
 {{- end}}
+
+{{ if .Success}}
+Glue completed successfully with no errors.
+{{ else}}
+Glue completed with **{{ .ErrorCount }} errors**.
+{{ end}}

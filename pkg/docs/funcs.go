@@ -3,12 +3,18 @@ package docs
 import (
 	"strconv"
 	"text/template"
+
+	"github.com/patrixr/q"
 )
 
-func add(a, b int) string {
-	return strconv.Itoa(a + b)
-}
-
 var funcMap = template.FuncMap{
-	"add": add,
+	"add": func(a, b int) string {
+		return strconv.Itoa(a + b)
+	},
+	"ellipsis": func(txt string) string {
+		return q.Ellipsis(txt, 25)
+	},
+	"errorstr": func(e error) string {
+		return e.Error()
+	},
 }

@@ -54,18 +54,20 @@ func GenerateLuaDocumentation(glue *core.Glue) string {
 }
 
 func GenerateResultReport(glue *core.Glue) string {
-	success, traces := glue.Result()
+	success, errorCount, traces := glue.Result()
 
 	var buf bytes.Buffer
 
 	err := templates.ExecuteTemplate(&buf, "report.md.tmpl", struct {
-		Time    string
-		Traces  []core.Trace
-		Success bool
+		Time       string
+		Traces     []core.Trace
+		Success    bool
+		ErrorCount int
 	}{
-		Time:    time.Now().Format(time.RFC822),
-		Traces:  traces,
-		Success: success,
+		Time:       time.Now().Format(time.RFC822),
+		Traces:     traces,
+		Success:    success,
+		ErrorCount: errorCount,
 	})
 
 	if err != nil {

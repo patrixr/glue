@@ -1,6 +1,8 @@
 package modules
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -62,6 +64,7 @@ func init() {
 				})
 			`)).
 			Do(luatools.TableFunc(func(props BlockOpts) error {
+				fmt.Println("inside blockinfile")
 				path, err := glue.SmartPath(props.Path)
 
 				if err != nil {
@@ -70,9 +73,7 @@ func init() {
 
 				props.Path = path
 
-				err = BlockInFile(props)
-
-				return err
+				return BlockInFile(props)
 			}))
 
 		return nil
@@ -170,6 +171,11 @@ func BlockInFile(props BlockOpts) error {
 	stat, err := os.Stat(path)
 	mode := os.FileMode(0644)
 	flag := os.O_RDWR
+
+	if props.State && len(props.Block) == 0 {
+		fmt.Println("returning error")
+		return errors.New("Cannot insert empty block")
+	}
 
 	if err != nil {
 		if !os.IsNotExist(err) {
