@@ -1,0 +1,7 @@
+# Glue Report - {{.Time}}
+
+| Step | Module | Success | Details |
+| :------: | :------: | :-------: | :------: |
+{{- range $i, $t := .Traces}}
+| {{add $i 1}} | __{{.Name}}__ | {{if .Error}} 🚩 {{else}} ✅ {{end}} | {{if .Error}} {{ .Error }} {{else}} - {{end}} |
+{{- end}}

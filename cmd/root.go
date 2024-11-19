@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/patrixr/glue/pkg/core"
+	"github.com/patrixr/glue/pkg/docs"
 	"github.com/patrixr/glue/pkg/modules"
 	"github.com/spf13/cobra"
 )
@@ -53,17 +54,13 @@ func run(cmd *cobra.Command, selector string) {
 		os.Exit(1)
 	}
 
-	success, traces := glue.Result()
+	success, _ := glue.Result()
+
+	fmt.Println(docs.GenerateResultReport(glue))
 
 	if !success {
-		for _, trace := range traces {
-			glue.Log.Error(trace.Name, "error", trace.Error)
-		}
-		glue.Log.Info(`Glue has ended  with errors`)
 		os.Exit(1)
 	}
-
-	glue.Log.Info("Glue completed successfully")
 }
 
 var rootCmd = &cobra.Command{

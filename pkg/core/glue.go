@@ -194,7 +194,7 @@ func (glue *Glue) Result() (bool, []Trace) {
 		return trace.Error != nil
 	})
 
-	return len(failedTraces) == 0, failedTraces
+	return len(failedTraces) == 0, glue.ExecutionTrace
 }
 
 func runAll(funcs []func() error) error {

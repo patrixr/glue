@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/charmbracelet/glamour"
 	"github.com/patrixr/glue/pkg/core"
@@ -13,16 +14,15 @@ import (
 
 //go:embed templates/*
 var tmplFS embed.FS
-
 var templates = template.Must(
-	template.ParseFS(tmplFS, "templates/*.md"),
+	template.New("").Funcs(funcMap).ParseFS(tmplFS, "templates/*.tmpl"),
 )
 
-func GenerateModuleDoc(mod *core.GlueModule) string {
-	var buf bytes.Buffer
-	templates.ExecuteTemplate(&buf, "module.md", mod)
-	return buf.String()
-}
+// func GenerateModuleDoc(mod *core.GlueModule) string {
+// 	var buf bytes.Buffer
+// 	templates.ExecuteTemplate(&buf, "module.md", mod)
+// 	return buf.String()
+// }
 
 func GenerateMarkdownDocumentation(glue *core.Glue) string {
 	var builder strings.Builder
@@ -51,4 +51,35 @@ func GenerateLuaDocumentation(glue *core.Glue) string {
 	builder.WriteString("\n")
 
 	return builder.String()
+}
+
+func GenerateResultReport(glue *core.Glue) string {
+	success, traces := glue.Result()
+
+	var buf bytes.Buffer
+
+	err := templates.ExecuteTemplate(&buf, "report.md.tmpl", struct {
+		Time    string
+		Traces  []core.Trace
+		Success bool
+	}{
+		Time:    time.Now().Format(time.RFC822),
+		Traces:  traces,
+		Success: success,
+	})
+
+	if err != nil {
+		return err.Error()
+	}
+
+	markdown := buf.String()
+
+	prettified, err := glamour.Render(markdown, "auto")
+
+	if err != nil {
+		return markdown
+	}
+
+	return prettified
+
 }

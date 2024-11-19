@@ -159,7 +159,9 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 
 			res, err := fn(L)
 
-			glue.recordTrace(name, L, err)
+			if !bypass {
+				glue.recordTrace(name, L, err)
+			}
 
 			if err != nil && glue.FailFast {
 				L.RaiseError(err.Error()) // boom
