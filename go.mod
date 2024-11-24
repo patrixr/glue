@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a
 	github.com/otiai10/copy v1.14.0
-	github.com/patrixr/q v0.9.2
+	github.com/patrixr/q v0.11.2
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7

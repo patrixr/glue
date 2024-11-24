@@ -64,7 +64,6 @@ func init() {
 				})
 			`)).
 			Do(luatools.TableFunc(func(props BlockOpts) error {
-				fmt.Println("inside blockinfile")
 				path, err := glue.SmartPath(props.Path)
 
 				if err != nil {

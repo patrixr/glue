@@ -1,10 +1,12 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/patrixr/glue/pkg/luatools"
 	"github.com/patrixr/q"
@@ -12,12 +14,11 @@ import (
 )
 
 type Glue struct {
-	afterScriptFuncs  []func() error
-	beforeScriptFuncs []func() error
-	lstate            *lua.LState
-	fileStack         []string
-	nesting           []string
+	q.Eventful
 
+	lstate *lua.LState
+
+	Stack          GlueStack
 	ExecutionTrace []Trace
 	DryRun         bool
 	Verbose        bool
@@ -28,18 +29,14 @@ type Glue struct {
 	Annotations    luatools.LuaAnnotations
 	UserSelector   Selector
 	FailFast       bool
+	Cache          q.Cache[string]
+	Context        context.Context
 }
 
 type GlueOptions struct {
 	DryRun   bool
 	Selector string
 	Verbose  bool
-}
-
-type Trace struct {
-	Name  string
-	Args  []string
-	Error error
 }
 
 func NewGlue() *Glue {
@@ -51,6 +48,8 @@ func NewGlue() *Glue {
 func NewGlueWithOptions(options GlueOptions) *Glue {
 	logger := CreateLogger()
 
+	ctx := context.Background()
+
 	L := lua.NewState(lua.Options{
 		SkipOpenLibs: true,
 	})
@@ -60,11 +59,14 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 	}
 
 	glue := &Glue{
+		Eventful:     q.NewEventEmitter(ctx, 1),
 		DryRun:       options.DryRun,
 		Verbose:      options.Verbose,
 		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
 		Log:          logger,
 		lstate:       L,
+		Cache:        q.NewInMemoryCache[string](time.Hour * 8760),
+		Context:      ctx,
 	}
 
 	InstallNativeGlueModules(glue)
@@ -77,15 +79,23 @@ func (glue *Glue) Execute(file string) error {
 		return errors.New("Unable to reuse the same Glue instance")
 	}
 
-	if err := glue.RunBeforeScript(); err != nil {
-		return err
+	_, errors := glue.Fire(EV_GLUE_END, glue)
+
+	if len(errors) > 0 {
+		return errors[0]
 	}
 
 	if err := glue.RunFileRaw(file); err != nil {
 		return err
 	}
 
-	return glue.RunAfterScript()
+	_, errors = glue.Fire(EV_GLUE_END, glue)
+
+	if len(errors) > 0 {
+		return errors[0]
+	}
+
+	return nil
 }
 
 func (glue *Glue) NotifyError(err error) {
@@ -93,7 +103,12 @@ func (glue *Glue) NotifyError(err error) {
 }
 
 func (glue *Glue) AtActiveLevel() (bool, error) {
-	return glue.UserSelector.Test(glue.nesting)
+	script := glue.Stack.ActiveScript()
+	return glue.UserSelector.Test(
+		q.Map(script.GroupStack, func(grp *GlueCodeGroup) string {
+			return grp.Name
+		}),
+	)
 }
 
 func (glue *Glue) ExecuteString(script string) error {
@@ -101,44 +116,37 @@ func (glue *Glue) ExecuteString(script string) error {
 		return errors.New("Unable to reuse the same Glue instance")
 	}
 
-	if err := glue.RunBeforeScript(); err != nil {
-		return err
-	}
+	glue.Stack.PushScript(":memory:", STRING)
+
+	defer glue.Stack.PopScript()
 
 	if err := glue.lstate.DoString(script); err != nil {
 		return err
 	}
 
-	return glue.RunAfterScript()
+	return nil
 }
 
 func (glue *Glue) RunFileRaw(file string) error {
-	nesting := glue.nesting
+	path, err := glue.SmartPath(file)
 
-	glue.fileStack = append(glue.fileStack, file)
-	glue.nesting = []string{RootLevel}
-
-	defer func() {
-		glue.fileStack = glue.fileStack[:len(glue.fileStack)-1]
-		glue.nesting = nesting
-	}()
-
-	return glue.lstate.DoFile(file)
-}
-
-func (glue *Glue) GetCurrentScript() (string, error) {
-	if len(glue.fileStack) == 0 {
-		return "", errors.New("No script is running at the moment")
+	if err != nil {
+		return err
 	}
 
-	return glue.fileStack[len(glue.fileStack)-1], nil
+	glue.Stack.PushScript(path, FILE)
+
+	defer glue.Stack.PopScript()
+
+	return glue.lstate.DoFile(path)
 }
 
 func (glue *Glue) Getwd() (string, error) {
-	current, err := glue.GetCurrentScript()
-	if err == nil {
-		return filepath.Dir(current), nil
+	if glue.Stack.HasActiveScript() {
+		script := glue.Stack.ActiveScript()
+		return filepath.Dir(script.Uri), nil
 	}
+
 	return os.Getwd()
 }
 
@@ -173,35 +181,10 @@ func (glue *Glue) Close() {
 	glue.lstate.Close()
 }
 
-func (glue *Glue) AfterScript(f func() error) {
-	glue.afterScriptFuncs = append(glue.afterScriptFuncs, f)
-}
-
-func (glue *Glue) BeforeScript(f func() error) {
-	glue.beforeScriptFuncs = append(glue.beforeScriptFuncs, f)
-}
-
-func (glue *Glue) RunBeforeScript() error {
-	return runAll(glue.beforeScriptFuncs)
-}
-
-func (glue *Glue) RunAfterScript() error {
-	return runAll(glue.afterScriptFuncs)
-}
-
 func (glue *Glue) Result() (bool, int, []Trace) {
 	failedTraces := q.Filter(glue.ExecutionTrace, func(trace Trace) bool {
 		return trace.Error != nil
 	})
 
 	return len(failedTraces) == 0, len(failedTraces), glue.ExecutionTrace
-}
-
-func runAll(funcs []func() error) error {
-	for _, f := range funcs {
-		if err := f(); err != nil {
-			return err
-		}
-	}
-	return nil
 }

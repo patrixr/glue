@@ -1,9 +1,9 @@
 # Glue Report - {{.Time}}
 
-| Step | Module | Success | Details |
-| :------: | :------: | :-------: | :------: |
+| Step | Module | Success | Notes | Error |
+| :------:  | :------: | :------: | :-------: | :------: |
 {{- range $i, $t := .Traces}}
-| {{add $i 1}} | __{{.Name}}__ | {{if .Error}} 🚩 {{else}} ✅ {{end}} | {{if .Error}} {{ellipsis (errorstr .Error) }} {{else}} - {{end}} |
+| {{add $i 1}} | {{.Name}} | {{if .Error}} 🚩 {{else}} ✅ {{end}}  | {{.About}} | {{if .Error}} {{ellipsis (errorstr .Error) }} {{else}} - {{end}} |
 {{- end}}
 
 {{ if .Success}}

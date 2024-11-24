@@ -9,14 +9,9 @@ import (
 	"github.com/patrixr/glue/pkg/luatools"
 )
 
-func InstallNativeGlueModules(glue *Glue) {
-	pop := func(s []string) []string {
-		if len(s) == 0 {
-			return s
-		}
-		return s[:len(s)-1]
-	}
+const ABOUT_CACHE_KEY = "annotation:about"
 
+func InstallNativeGlueModules(glue *Glue) {
 	glue.Plug().
 		Name("glue").
 		Short("Run a glue script").
@@ -46,6 +41,33 @@ func InstallNativeGlueModules(glue *Glue) {
 			return nil
 		}))
 
+	glue.On(EV_NEW_TRACE, func(_ string, data any) error {
+		note, ok := glue.Stack.CurrentGroup().Get(ABOUT_CACHE_KEY)
+
+		if !ok || len(note) == 0 {
+			return nil
+		}
+
+		trace, ok := data.(*Trace)
+
+		if ok {
+			trace.About = note
+		}
+
+		return nil
+	})
+
+	glue.Plug().
+		Name("note").
+		Short("Annotate the current group with some details").
+		Arg("brief", "string", "short explanation of the next step").
+		Mode(NONE).
+		Bypass().
+		Do(luatools.StrFunc(func(s string) error {
+			glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s)
+			return nil
+		}))
+
 	glue.Plug().
 		Name("group").
 		Short("Create a runnable group").
@@ -66,11 +88,9 @@ func InstallNativeGlueModules(glue *Glue) {
 				return errors.New(fmt.Sprintf("Group cannot be named %s. Reserved keyword", name))
 			}
 
-			glue.nesting = append(glue.nesting, name)
+			glue.Stack.PushGroup(name)
 
-			defer func() {
-				glue.nesting = pop(glue.nesting)
-			}()
+			defer glue.Stack.PopGroup()
 
 			active, err := glue.AtActiveLevel()
 
@@ -79,10 +99,13 @@ func InstallNativeGlueModules(glue *Glue) {
 			}
 
 			if active {
-				glue.Log.Info("[Group]", "path", strings.Join(glue.nesting[1:], "."))
+				glue.Log.Info("[Group]", "name", name)
+				glue.Fire(EV_GROUP_START, name)
 			}
 
 			fn()
+
+			glue.Fire(EV_GROUP_END, name)
 
 			return nil
 		}))

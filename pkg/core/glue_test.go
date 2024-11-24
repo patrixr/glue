@@ -16,9 +16,9 @@ func Test_FunctionCalling(t *testing.T) {
 
 	glue.Plug().
 		Name("foo").
-		Do(func(L *lua.LState) int {
+		Do(func(L *lua.LState) (int, error) {
 			called = true
-			return 0
+			return 0, nil
 		})
 
 	t.Run("should fail to call a non-existing function", func(t *testing.T) {
