@@ -10,8 +10,21 @@ func init() {
 	Registry.RegisterModule(HomebrewMod)
 }
 
+type HomebrewParams struct {
+	Packages   []string `json:"packages"`
+	Casks      []string `json:"casks"`
+	Taps       []string `json:"taps"`
+	Mas        []string `json:"mas"`
+	Whalebrews []string `json:"whalebrews"`
+}
+
 func HomebrewMod(glue *core.Glue) error {
-	brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
+	glue.Annotations.AddClass("HomebrewParams").
+		Field("packages?", "string[]", "the homebrew packages to install").
+		Field("taps?", "string[]", "the homebrew taps to install").
+		Field("mas?", "string[]", "the homebrew mac app stores to install").
+		Field("whalebrews?", "string[]", "the whalebrews install").
+		Field("casks?", "string[]", "the homebrew casks to install")
 
 	ensure := luatools.Func(func() error {
 		if !glue.Verbose {
@@ -26,37 +39,30 @@ func HomebrewMod(glue *core.Glue) error {
 		return homebrew.UpdateHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 	})
 
-	pkg := luatools.StrFunc(func(name string) error {
-		brew.Brew(name)
-		return nil
-	})
+	mainHomebrew := luatools.TableFunc[HomebrewParams](func(params HomebrewParams) error {
+		brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
-	cask := luatools.StrFunc(func(name string) error {
-		brew.Cask(name)
-		return nil
-	})
-
-	tap := luatools.StrFunc(func(name string) error {
-		brew.Tap(name)
-		return nil
-	})
-
-	mas := luatools.StrFunc(func(name string) error {
-		brew.Mas(name)
-		return nil
-	})
-
-	whalebrew := luatools.StrFunc(func(name string) error {
-		brew.Whalebrew(name)
-		return nil
-	})
-
-	sync := luatools.Func(func() error {
 		if !glue.Verbose {
 			glue.Log.Quiet()
 		}
 
 		defer glue.Log.Loud()
+
+		for _, it := range params.Packages {
+			brew.Package(it)
+		}
+		for _, it := range params.Casks {
+			brew.Cask(it)
+		}
+		for _, it := range params.Taps {
+			brew.Tap(it)
+		}
+		for _, it := range params.Mas {
+			brew.Mas(it)
+		}
+		for _, it := range params.Whalebrews {
+			brew.Whalebrew(it)
+		}
 
 		return brew.Install()
 	})
@@ -67,6 +73,8 @@ func HomebrewMod(glue *core.Glue) error {
 		}
 
 		defer glue.Log.Loud()
+
+		brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
 		return brew.Upgrade()
 	})
@@ -80,52 +88,8 @@ func HomebrewMod(glue *core.Glue) error {
 	glue.Plug().
 		Name("homebrew").
 		Short("Marks a homebrew package for installation").
-		Arg("pkg", "string", "the name of the package to install").
-		Example("homebrew('git')").
-		Example("homebrew('zsh)").
-		Example("homebrew(\"package\")").
-		Example("homebrew_sync()").
-		Do(pkg)
-
-	glue.Plug().
-		Name("homebrew_cask").
-		Short("Marks a cask for installation").
-		Arg("pkg", "string", "the name of the cask to install").
-		Example("homebrew_cask('firefox')").
-		Example("homebrew_cask('spotify')").
-		Example("homebrew_sync()").
-		Do(cask)
-
-	glue.Plug().
-		Name("homebrew_tap").
-		Short("Marks a homebrew tap for installation").
-		Arg("tap", "string", "the name of the tap to install").
-		Example("homebrew_tap('homebrew/cask')").
-		Do(tap)
-
-	glue.Plug().
-		Name("homebrew_mas").
-		Short("Marks a Mac App Store package for installation").
-		Arg("name", "string", "the name of the mas to install").
-		Example("homebrew_mas('1Password')").
-		Example("homebrew_mas('Slack')").
-		Example("homebrew_sync()").
-		Do(mas)
-
-	glue.Plug().
-		Name("homebrew_whalebrew").
-		Short("Marks a whalebrew package for installation").
-		Arg("name", "string", "the name of the whalebrew to install").
-		Example("homebrew_whalebrew('whalebrew/awscli'").
-		Example("homebrew_whalebrew('whalebrew/ffmpeg')").
-		Example("homebrew_sync()").
-		Do(whalebrew)
-
-	glue.Plug().
-		Name("homebrew_sync").
-		Short("Installs all marked packages").
-		Example("homebrew_sync()").
-		Do(sync)
+		Arg("params", "HomebrewParams", "the packages to install").
+		Do(mainHomebrew)
 
 	glue.Plug().
 		Name("homebrew_upgrade").

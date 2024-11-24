@@ -105,5 +105,5 @@ func (gw GlueWriter) Write(p []byte) (n int, err error) {
 	if gw.Loud {
 		return gw.OutWriter.Write(p)
 	}
-	return 0, nil
+	return len(p), nil
 }

@@ -22,10 +22,13 @@ type Homebrew struct {
 }
 
 func NewHomebrew(stdout io.Writer, stderr io.Writer) *Homebrew {
-	return &Homebrew{}
+	return &Homebrew{
+		stdout: stdout,
+		stderr: stderr,
+	}
 }
 
-func (h *Homebrew) Brew(pkg string) {
+func (h *Homebrew) Package(pkg string) {
 	h.rows = append(h.rows, Row{kind: "brew", name: pkg})
 }
 

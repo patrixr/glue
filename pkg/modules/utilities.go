@@ -36,6 +36,10 @@ func UtilitiesMod(glue *core.Glue) error {
 		return strings.TrimSpace(q.TrimIndent(s)), nil
 	})
 
+	capitalize := luatools.StrInStrOutFunc(func(s string) (string, error) {
+		return strings.ToUpper(s[:1]) + s[1:], nil
+	})
+
 	read := luatools.StrInStrOutFunc(func(path string) (string, error) {
 		resolvedPath, err := glue.SmartPath(path)
 
@@ -78,6 +82,16 @@ func UtilitiesMod(glue *core.Glue) error {
 		Mode(core.NONE).
 		Bypass().
 		Do(trim)
+
+	glue.Plug().
+		Name("capitalize").
+		Short("Uppercase the first letter of a string").
+		Arg("txt", "string", "the text to capitalize").
+		Return("string", "the text with capitalized first letter").
+		Example("capitalize(text)").
+		Mode(core.NONE).
+		Bypass().
+		Do(capitalize)
 
 	glue.Plug().
 		Name("read").

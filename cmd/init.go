@@ -77,9 +77,7 @@ by creating a script file for you to configure your system
 		glueScript := filepath.Join(glueFolder, "glue.lua")
 
 		// Initialize glue script
-		if _, err := core.TryFindGlueFile(glueFolder); err == nil {
-			glue.Log.Info("A glue script already exists at ~/.config. Skipping")
-		} else {
+		if _, err := core.TryFindGlueFile(glueFolder); err != nil {
 			mkdirp(glueFolder)
 			assert(os.WriteFile(glueScript, []byte("-- Input code below"), 0644), "Failed to created glue file")
 			glue.Log.Info("Glue script initialized at " + glueScript)
@@ -89,8 +87,8 @@ by creating a script file for you to configure your system
 
 		// Create lib with metadata
 		luarcFile := filepath.Join(glueFolder, ".luarc.json")
-		libFolder := filepath.Join(glueFolder, "lib")
-		libFile := filepath.Join(libFolder, "glue_lib.lua")
+		libFolder := filepath.Join(glueFolder, ".glue")
+		libFile := filepath.Join(libFolder, "typedefs.lua")
 
 		mkdirp(libFolder)
 
@@ -101,7 +99,7 @@ by creating a script file for you to configure your system
 
 		assert(err, "Failed to initialize .luarc")
 
-		luarc.AddLibrary("./lib")
+		luarc.AddLibrary("./.glue")
 		json, err := luarc.ToJSON()
 
 		assert(err, "Failed to marshal luarc into JSON")
