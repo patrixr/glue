@@ -18,11 +18,15 @@ var templates = template.Must(
 	template.New("").Funcs(funcMap).ParseFS(tmplFS, "templates/*.tmpl"),
 )
 
-// func GenerateModuleDoc(mod *core.GlueModule) string {
-// 	var buf bytes.Buffer
-// 	templates.ExecuteTemplate(&buf, "module.md", mod)
-// 	return buf.String()
-// }
+/*
+@TODO: Implement module documentation generation
+
+func GenerateModuleDoc(mod *core.GlueModule) string {
+	var buf bytes.Buffer
+	templates.ExecuteTemplate(&buf, "module.md", mod)
+	return buf.String()
+}
+*/
 
 func GenerateMarkdownDocumentation(glue *core.Glue) string {
 	var builder strings.Builder
@@ -56,18 +60,45 @@ func GenerateLuaDocumentation(glue *core.Glue) string {
 func GenerateResultReport(glue *core.Glue) string {
 	success, errorCount, traces := glue.Result()
 
+	tests := glue.TestResults()
+	testPassCount := 0
+
+	for _, test := range tests {
+		if test.Error == nil {
+			testPassCount++
+		}
+	}
+
+	testFailCount := len(tests) - testPassCount
+
 	var buf bytes.Buffer
 
 	err := templates.ExecuteTemplate(&buf, "report.md.tmpl", struct {
-		Time       string
-		Traces     []core.Trace
-		Success    bool
-		ErrorCount int
+		Time              string
+		Traces            []core.Trace
+		TraceCount        int
+		Success           bool
+		ErrorCount        int
+		IncludeTests      bool
+		TestResults       []core.TestResult
+		TestLen           int
+		TestPassCount     int
+		TestFailCount     int
+		TestSkipCount     int
+		SystemIsCompliant bool
 	}{
-		Time:       time.Now().Format(time.RFC822),
-		Traces:     traces,
-		Success:    success,
-		ErrorCount: errorCount,
+		Time:              time.Now().Format(time.RFC822),
+		Traces:            traces,
+		TraceCount:        len(traces),
+		Success:           success,
+		ErrorCount:        errorCount,
+		IncludeTests:      glue.RunTests && len(tests) > 0,
+		TestResults:       tests,
+		TestLen:           len(tests),
+		TestPassCount:     testPassCount,
+		TestFailCount:     testFailCount,
+		TestSkipCount:     0,
+		SystemIsCompliant: success && errorCount == 0 && testFailCount == 0,
 	})
 
 	if err != nil {

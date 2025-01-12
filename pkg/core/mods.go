@@ -134,15 +134,20 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 			if bypass {
 				res, err := fn(L)
 				if err != nil {
-					L.RaiseError(err.Error()) // boom
+					L.RaiseError("%s", err.Error())
 				}
 				return res
+			}
+
+			if glue.Testing() {
+				L.RaiseError("Attempted to run module in test mode")
+				return 0
 			}
 
 			active, err := glue.AtActiveLevel()
 
 			if err != nil {
-				L.RaiseError(err.Error())
+				L.RaiseError("%s", err.Error())
 				return 0
 			}
 
@@ -168,7 +173,7 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 			glue.SaveTrace(name, L, err)
 
 			if err != nil && glue.FailFast {
-				L.RaiseError(err.Error()) // boom
+				L.RaiseError("%s", err.Error())
 			}
 
 			return res

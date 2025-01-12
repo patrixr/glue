@@ -15,6 +15,7 @@ import (
 
 type Glue struct {
 	q.Eventful
+	Testable
 
 	lstate *lua.LState
 
@@ -22,13 +23,14 @@ type Glue struct {
 	ExecutionTrace []Trace
 	DryRun         bool
 	Verbose        bool
-	Log            *GlueLogger
+	RunTests       bool
 	Done           bool
 	Unsafe         bool
+	FailFast       bool
+	Log            *GlueLogger
 	Modules        []*GlueModule
 	Annotations    luatools.LuaAnnotations
 	UserSelector   Selector
-	FailFast       bool
 	Cache          q.Cache[string]
 	Context        context.Context
 }
@@ -60,6 +62,7 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 
 	glue := &Glue{
 		Eventful:     q.NewEventEmitter(ctx, 1),
+		Testable:     NewTestSuite(),
 		DryRun:       options.DryRun,
 		Verbose:      options.Verbose,
 		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
@@ -67,6 +70,7 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 		lstate:       L,
 		Cache:        q.NewInMemoryCache[string](time.Hour * 8760),
 		Context:      ctx,
+		RunTests:     true,
 	}
 
 	InstallNativeGlueModules(glue)
@@ -89,6 +93,10 @@ func (glue *Glue) Execute(file string) error {
 		return err
 	}
 
+	if glue.RunTests {
+		glue.Test()
+	}
+
 	_, errors = glue.Fire(EV_GLUE_END, glue)
 
 	if len(errors) > 0 {
@@ -98,11 +106,11 @@ func (glue *Glue) Execute(file string) error {
 	return nil
 }
 
-func (glue *Glue) NotifyError(err error) {
-	glue.lstate.RaiseError(err.Error())
-}
-
 func (glue *Glue) AtActiveLevel() (bool, error) {
+	if glue.Testing() {
+		return true, nil
+	}
+
 	script := glue.Stack.ActiveScript()
 	return glue.UserSelector.Test(
 		q.Map(script.GroupStack, func(grp *GlueCodeGroup) string {

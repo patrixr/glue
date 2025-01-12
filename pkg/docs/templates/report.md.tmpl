@@ -1,9 +1,34 @@
 # Glue Report - {{.Time}}
 
+
+{{- if (gt .TraceCount 0) }}
+## Modules applied
+
 | Step | Module | Success | Notes | Error |
 | :------:  | :------: | :------: | :------- | :------: |
 {{- range $i, $t := .Traces}}
 | {{add $i 1}} | {{.Name}} | {{if .Error}} 🚩 {{else}} ✅ {{end}}  | {{.About}} | {{if .Error}} {{ellipsis (errorstr .Error) }} {{else}} - {{end}} |
+{{- end}}
+{{- end}}
+
+{{ if .IncludeTests }}
+## Test Summary
+
+A total of **{{ .TestLen }}** tests were run to validate the compliance of the system.
+
+- Pass: {{ .TestPassCount }}
+- Fail: {{ .TestFailCount }}
+- Skip: {{ .TestSkipCount }}
+
+Tests:
+
+| Test | Error |
+| :------:  | :------: |
+{{- range $i, $t := .TestResults}}
+    {{- if .Error}}
+    | {{.Test.Name}} | {{ (errorstr .Error) }} |
+    {{- end}}
+{{- end}}
 {{- end}}
 
 {{ if .Success}}

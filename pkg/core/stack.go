@@ -1,6 +1,8 @@
 package core
 
-import "github.com/patrixr/q"
+import (
+	"github.com/patrixr/q"
+)
 
 type ScriptType int
 
@@ -29,10 +31,10 @@ type GlueStack struct {
 func NewGlueScope(fileName string) *GlueStack {
 	return &GlueStack{
 		ExecutionStack: []*GlueScript{
-			&GlueScript{
+			{
 				Uri: fileName,
 				GroupStack: []*GlueCodeGroup{
-					&GlueCodeGroup{Name: RootLevel},
+					{Name: RootLevel},
 				},
 			},
 		},
@@ -44,7 +46,7 @@ func (scope *GlueStack) PushScript(file string, kind ScriptType) {
 		Uri:  file,
 		Type: kind,
 		GroupStack: []*GlueCodeGroup{
-			&GlueCodeGroup{
+			{
 				Name:        RootLevel,
 				Annotations: map[string]string{},
 			},

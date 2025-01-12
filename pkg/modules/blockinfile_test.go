@@ -21,7 +21,7 @@ func TestBlockInString(t *testing.T) {
 	}
 
 	testCases := []testCase{
-		testCase{
+		{
 			name: "Block should be removed from the text",
 			input: q.Paragraph(`
 			    line 1
@@ -41,7 +41,7 @@ func TestBlockInString(t *testing.T) {
 				State: false,
 			},
 		},
-		testCase{
+		{
 			name: "Block with custom markers should be removed from the text",
 			input: q.Paragraph(`
 			    line 1
@@ -63,7 +63,7 @@ func TestBlockInString(t *testing.T) {
 				Markerend:   "BBB",
 			},
 		},
-		testCase{
+		{
 			name: "Existing block should be replaced",
 			input: q.Paragraph(`
 				line 1
@@ -86,7 +86,7 @@ func TestBlockInString(t *testing.T) {
 				State: true,
 			},
 		},
-		testCase{
+		{
 			name: "Existing block should be replaced even if empty",
 			input: q.Paragraph(`
 				line 1
@@ -108,7 +108,7 @@ func TestBlockInString(t *testing.T) {
 				State: true,
 			},
 		},
-		testCase{
+		{
 			name: "Block should be added at the end by default",
 			input: q.Paragraph(`
 				line 1
@@ -127,7 +127,7 @@ func TestBlockInString(t *testing.T) {
 				State: true,
 			},
 		},
-		testCase{
+		{
 			name: "Block should be after the Insertafter",
 			input: q.Paragraph(`
 				line 1
@@ -148,7 +148,7 @@ func TestBlockInString(t *testing.T) {
 				Insertafter: "line 2",
 			},
 		},
-		testCase{
+		{
 			name: "Block should be after the Insertafter on the last line",
 			input: q.Paragraph(`
 				line 1
@@ -169,7 +169,7 @@ func TestBlockInString(t *testing.T) {
 				Insertafter: "line 3",
 			},
 		},
-		testCase{
+		{
 			name: "block should be added at the Insertafter marker using a Regex",
 			input: q.Paragraph(`
 				line 1
@@ -190,7 +190,7 @@ func TestBlockInString(t *testing.T) {
 				Insertafter: ".*2",
 			},
 		},
-		testCase{
+		{
 			name: "block should be added at the Insertbefore marker if specified",
 			input: q.Paragraph(`
 				line 1

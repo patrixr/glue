@@ -9,11 +9,9 @@ import (
 	"github.com/patrixr/glue/pkg/luatools"
 )
 
-const ABOUT_CACHE_KEY = "annotation:about"
-
 func InstallNativeGlueModules(glue *Glue) {
 	glue.Plug().
-		Name("glue").
+		Name("glue.run").
 		Short("Run a glue script").
 		Arg("glue_file", "string", "the glue file to run").
 		Do(luatools.StrFunc(func(file string) error {
@@ -38,33 +36,6 @@ func InstallNativeGlueModules(glue *Glue) {
 			if err := glue.RunFileRaw(scriptPath); err != nil {
 				return err
 			}
-			return nil
-		}))
-
-	glue.On(EV_NEW_TRACE, func(_ string, data any) error {
-		note, ok := glue.Stack.CurrentGroup().Get(ABOUT_CACHE_KEY)
-
-		if !ok || len(note) == 0 {
-			return nil
-		}
-
-		trace, ok := data.(*Trace)
-
-		if ok {
-			trace.About = note
-		}
-
-		return nil
-	})
-
-	glue.Plug().
-		Name("note").
-		Short("Annotate the current group with some details").
-		Arg("brief", "string", "short explanation of the next step").
-		Mode(NONE).
-		Bypass().
-		Do(luatools.StrFunc(func(s string) error {
-			glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s)
 			return nil
 		}))
 

@@ -39,7 +39,7 @@ func HomebrewMod(glue *core.Glue) error {
 		return homebrew.UpdateHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 	})
 
-	mainHomebrew := luatools.TableFunc[HomebrewParams](func(params HomebrewParams) error {
+	mainHomebrew := luatools.TableFunc(func(params HomebrewParams) error {
 		brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
 		if !glue.Verbose {
