@@ -156,7 +156,7 @@ func MockFunc(args ...lua.LValue) LuaFuncWithError {
 
 func UnimplementedFunc(errMessage string) LuaFuncWithError {
 	return func(L *lua.LState) (int, error) {
-		L.RaiseError(errMessage)
+		L.RaiseError("%s", errMessage)
 		return 0, nil
 	}
 }

@@ -17,6 +17,16 @@ func init() {
 			Example("print('Hello, world!')").
 			Bypass().
 			Do(func(L *lua.LState) (int, error) {
+				ok, err := glue.AtActiveLevel()
+
+				if err != nil {
+					return 0, err
+				}
+
+				if !ok {
+					return 0, nil
+				}
+
 				input := luatools.GetArgAsString(L, 1)
 				glue.Log.Info(input)
 				return 0, nil

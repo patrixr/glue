@@ -111,6 +111,10 @@ func (glue *Glue) AtActiveLevel() (bool, error) {
 		return true, nil
 	}
 
+	if len(glue.Stack.ExecutionStack) == 0 {
+		return false, nil
+	}
+
 	script := glue.Stack.ActiveScript()
 	return glue.UserSelector.Test(
 		q.Map(script.GroupStack, func(grp *GlueCodeGroup) string {

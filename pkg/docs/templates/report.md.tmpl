@@ -20,15 +20,16 @@ A total of **{{ .TestLen }}** tests were run to validate the compliance of the s
 - Fail: {{ .TestFailCount }}
 - Skip: {{ .TestSkipCount }}
 
-Tests:
+Test failures:
 
-| Test | Error |
-| :------:  | :------: |
-{{- range $i, $t := .TestResults}}
+{{range $i, $t := .TestResults}}
     {{- if .Error}}
-    | {{.Test.Name}} | {{ (errorstr .Error) }} |
+🚩 _{{.Test.Name}}_:
+```
+{{ (errorstr .Error) }}
+```
     {{- end}}
-{{- end}}
+{{end}}
 {{- end}}
 
 {{ if .Success}}
@@ -36,3 +37,7 @@ Glue completed successfully with no errors.
 {{ else}}
 Glue completed with **{{ .ErrorCount }} errors**.
 {{ end}}
+
+{{ if gt .TestFailCount 0 }}
+A total of **{{ .TestFailCount }}** tests have failed.
+{{ end }}
