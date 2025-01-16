@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
 
@@ -149,7 +150,7 @@ func (tableAnno *LuaTableAnnotation) AddChild(name string) *LuaTableAnnotation {
 
 type LuaFieldDesc struct {
 	Name string
-	Type string
+	Type runtime.Type
 	Desc string
 }
 
@@ -226,7 +227,7 @@ func (classAnnotation *LuaClassAnnotation) Render() string {
 	builder.WriteString(fmt.Sprintf("---@class %s\n", classAnnotation.Name))
 
 	for _, field := range classAnnotation.Fields {
-		builder.WriteString(fmt.Sprintf("---@field %s %s %s\n", field.Name, field.Type, field.Desc))
+		builder.WriteString(fmt.Sprintf("---@field %s %s %s\n", field.Name, runtime.TypeName(field.Type), field.Desc))
 	}
 
 	builder.WriteString("\n")
@@ -234,7 +235,7 @@ func (classAnnotation *LuaClassAnnotation) Render() string {
 	return builder.String()
 }
 
-func (classAnnotation *LuaClassAnnotation) Field(name string, kind string, desc string) *LuaClassAnnotation {
+func (classAnnotation *LuaClassAnnotation) Field(name string, kind runtime.Type, desc string) *LuaClassAnnotation {
 	classAnnotation.Fields = append(classAnnotation.Fields, LuaFieldDesc{
 		Name: name,
 		Type: kind,

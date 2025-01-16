@@ -2,7 +2,7 @@ package modules
 
 import (
 	"github.com/patrixr/glue/pkg/core"
-	lua "github.com/yuin/gopher-lua"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -10,23 +10,23 @@ func init() {
 		glue.Plug().
 			Name("assert").
 			Short("Asserts the given boolean and raises and error if problematic").
-			Arg("value", "boolean", "the condition to assert on").
-			Arg("brief", "string", "short explanation of the next step").
+			Arg("value", BOOL, "the condition to assert on").
+			Arg("brief", STRING, "short explanation of the next step").
 			Mode(core.NONE).
 			Bypass().
-			Do(func(L *lua.LState) (int, error) {
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				if !glue.Testing() {
-					return 0, nil
+					return nil, nil
 				}
 
-				valid := L.ToBool(1)
-				msg := L.ToString(2)
+				valid := args.EnsureBool(0).Value()
+				msg := args.EnsureString(1).String()
 
 				if !valid {
 					panic(msg)
 				}
 
-				return 0, nil
+				return nil, nil
 			})
 
 		return nil

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/patrixr/glue/pkg/core"
+	"github.com/patrixr/glue/pkg/runtime"
 	"github.com/stretchr/testify/assert"
-	lua "github.com/yuin/gopher-lua"
 )
 
 func Test_FunctionCalling(t *testing.T) {
@@ -16,9 +16,9 @@ func Test_FunctionCalling(t *testing.T) {
 
 	glue.Plug().
 		Name("foo").
-		Do(func(L *lua.LState) (int, error) {
+		Do(func(R runtime.Runtime, args *runtime.Arguments) (runtime.RTValue, error) {
 			called = true
-			return 0, nil
+			return nil, nil
 		})
 
 	t.Run("should fail to call a non-existing function", func(t *testing.T) {

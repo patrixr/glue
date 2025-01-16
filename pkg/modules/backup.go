@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -16,10 +16,11 @@ func init() {
 			Name("backup").
 			Short("Creates a backup of a file").
 			Long("Creates a backup of a file").
-			Arg("path", "string", "the file to create a backup of").
-			Do(luatools.StrFunc(func(path string) error {
-				return Backup(path)
-			}))
+			Arg("path", STRING, "the file to create a backup of").
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				str := args.EnsureString(0)
+				return nil, Backup(str.String())
+			})
 
 		return nil
 	})

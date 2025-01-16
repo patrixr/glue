@@ -2,7 +2,7 @@ package modules
 
 import (
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/glue/pkg/shell"
 )
 
@@ -12,17 +12,19 @@ func init() {
 			Name("sh").
 			Short("Run a shell command").
 			Long("Run a shell command").
-			Arg("cmd", "string", "the shell command to run").
+			Arg("cmd", STRING, "the shell command to run").
 			Example("sh('ls')").
-			Do(luatools.StrFunc(func(cmd string) error {
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				if !glue.Verbose {
 					glue.Log.Quiet()
 				}
 
 				defer glue.Log.Loud()
 
-				return shell.Run(cmd, glue.Log.Stdout, glue.Log.Stderr)
-			}))
+				cmd := args.EnsureString(0).String()
+
+				return nil, shell.Run(cmd, glue.Log.Stdout, glue.Log.Stderr)
+			})
 
 		return nil
 	})

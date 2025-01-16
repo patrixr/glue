@@ -7,33 +7,40 @@ import (
 
 	cp "github.com/otiai10/copy"
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Annotations.AddClass("CopyOpts").
-			Field("source", "string", "the file or folder to copy").
-			Field("dest", "string", "the destination to copy to").
-			Field("strategy?", `"replace"|"merge"`, "a strategy for how to manage conflicts (defaults to merge)").
-			Field("symlink?", `"deep"|"shallow"|"skip"`, "how to handle symlinks (copy the content, copy the link, or the default skip)")
+			Field("source", STRING, "the file or folder to copy").
+			Field("dest", STRING, "the destination to copy to").
+			Field("strategy?", STRING, "a strategy for how to manage conflicts (replace or merge, defaults to merge)").
+			Field("symlink?", STRING, "how to handle symlinks (deep/shallow/skip or the default skip)")
 
+		// @TODO: class annotation for CopyOpts
 		glue.Plug().
 			Name("copy").
 			Short("Copies folder").
 			Long("Copies").
-			Arg("opts", "CopyOpts", "the copy options").
-			Do(luatools.TableFunc[CopyOpts](func(opts CopyOpts) error {
+			Arg("opts", DICT, "the copy options").
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				opts, err := DecodeMap[CopyOpts](args.EnsureDict(0).Map())
+
+				if err != nil {
+					return nil, err
+				}
+
 				dest, err := glue.SmartPath(opts.Dest)
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				src, err := glue.SmartPath(opts.Source)
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				glue.Log.Info("[Copy]", "src", opts.Source, "dst", opts.Dest)
@@ -41,8 +48,8 @@ func init() {
 				opts.Dest = dest
 				opts.Source = src
 
-				return Copy(opts)
-			}))
+				return nil, Copy(opts)
+			})
 
 		return nil
 	})

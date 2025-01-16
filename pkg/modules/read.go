@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -14,26 +14,27 @@ func init() {
 				Name("read").
 				Short("Reads a file as a string").
 				Long("Reads a file as a string").
-				Arg("path", "string", "the path of the file to read").
+				Arg("path", STRING, "the path of the file to read").
 				Return("string", "the file content").
 				Example("read(\"./some/file\")").
 				Mode(core.READ).
-				MockReturn(luatools.EmptyLuaString).
-				Do(luatools.StrInStrOutFunc(func(path string) (string, error) {
+				Bypass().
+				Do(func(R Runtime, args *Arguments) (RTValue, error) {
+					path := args.EnsureString(0).String()
 					resolvedPath, err := glue.SmartPath(path)
 
 					if err != nil {
-						return "", err
+						return nil, err
 					}
 
 					data, err := os.ReadFile(resolvedPath)
 
 					if err != nil {
-						return "", err
+						return nil, err
 					}
 
-					return string(data), err
-				}))
+					return R.String(string(data)), err
+				})
 
 			return nil
 		})

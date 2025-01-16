@@ -2,7 +2,7 @@ package modules
 
 import (
 	"github.com/patrixr/glue/pkg/core"
-	lua "github.com/yuin/gopher-lua"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -10,36 +10,19 @@ func init() {
 		glue.Plug().
 			Name("test").
 			Short("Create a test case").
-			Arg("name", "string", "A description of the test").
-			Arg("fn", "function", "The test implementation").
+			Arg("name", STRING, "A description of the test").
+			Arg("fn", FUNC, "The test implementation").
 			Mode(core.NONE).
 			Bypass().
-			Do(func(L *lua.LState) (int, error) {
-				active, err := glue.AtActiveLevel()
-
-				if err != nil {
-					return 0, err
-				}
-
-				if !active {
-					return 0, nil
-				}
-
-				L.CheckTypes(1, lua.LTString)
-				L.CheckTypes(2, lua.LTFunction)
-
-				name := L.ToString(1)
-				fn := L.ToFunction(2)
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				name := args.EnsureString(0).String()
+				fn := args.EnsureFunction(0)
 
 				glue.RegisterTest(name, func() {
-					L.CallByParam(lua.P{
-						Fn:      fn,
-						NRet:    0,
-						Protect: false,
-					})
+					R.InvokeFunction(fn)
 				})
 
-				return 0, nil
+				return nil, nil
 			})
 
 		return nil

@@ -1,8 +1,6 @@
 package luatools
 
 import (
-	"fmt"
-
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 )

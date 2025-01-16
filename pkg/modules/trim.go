@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
 
@@ -16,14 +16,15 @@ func init() {
 				Name("trim").
 				Short("Trims the extra indentation of a multi-line string").
 				Long("Trims the extra indentation of a multi-line string").
-				Arg("txt", "string", "the text to trim").
+				Arg("txt", STRING, "the text to trim").
 				Return("string", "the trimmed text").
 				Example("trim(text)").
 				Mode(core.NONE).
 				Bypass().
-				Do(luatools.StrInStrOutFunc(func(s string) (string, error) {
-					return strings.TrimSpace(q.TrimIndent(s)), nil
-				}))
+				Do(func(R Runtime, args *Arguments) (RTValue, error) {
+					s := args.EnsureString(0).String()
+					return R.String(strings.TrimSpace(q.TrimIndent(s))), nil
+				})
 
 			return nil
 		})

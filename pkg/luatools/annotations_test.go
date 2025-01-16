@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/patrixr/glue/pkg/luatools"
+	"github.com/patrixr/glue/pkg/runtime"
 )
 
 func TestFunctionAnnotationRender(t *testing.T) {
@@ -12,8 +13,8 @@ func TestFunctionAnnotationRender(t *testing.T) {
 		Name: "myFunction",
 		Desc: "This is a test function.\nIt does something useful.",
 		Args: []luatools.LuaFieldDesc{
-			{Name: "arg1", Type: "string", Desc: "The first argument."},
-			{Name: "arg2", Type: "number", Desc: "The second argument."},
+			{Name: "arg1", Type: runtime.STRING, Desc: "The first argument."},
+			{Name: "arg2", Type: runtime.NUMBER, Desc: "The second argument."},
 		},
 		Returns: []luatools.LuaReturnDesc{
 			{Type: "boolean", Desc: "Returns true if successful."},
@@ -44,8 +45,8 @@ func TestLuaClassAnnotation_Render(t *testing.T) {
 	classAnnotation := luatools.LuaClassAnnotation{
 		Name: "MyClass",
 		Fields: []luatools.LuaFieldDesc{
-			{Name: "field1", Type: "string", Desc: "The first field."},
-			{Name: "field2", Type: "number", Desc: "The second field."},
+			{Name: "field1", Type: runtime.STRING, Desc: "The first field."},
+			{Name: "field2", Type: runtime.NUMBER, Desc: "The second field."},
 		},
 	}
 

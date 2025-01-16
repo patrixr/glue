@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/patrixr/glue/pkg/luatools"
+	"github.com/patrixr/glue/pkg/runtime"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -27,13 +28,13 @@ func HasMode(b, flag Mode) bool {
 // A representation of a module
 // Modules can be installed into the Lua state
 type GlueModule struct {
-	Name       string
-	Short      string
-	Long       string
-	Mode       Mode
-	Examples   []string
-	Bypass     bool
-	fn         luatools.LuaFuncWithError
+	Name     string
+	Short    string
+	Long     string
+	Mode     Mode
+	Examples []string
+	Bypass   bool
+	// fn         luatools.LuaFuncWithError
 	mockReturn []lua.LValue
 }
 
@@ -45,6 +46,7 @@ type glueplug struct {
 	mode       Mode
 	examples   []string
 	annotation luatools.LuaFuncAnnotation
+	args       []runtime.ArgDef
 	glue       *Glue
 	bypass     bool
 	mockReturn []lua.LValue
@@ -95,7 +97,7 @@ func (plug *glueplug) Bypass() *glueplug {
 	return plug
 }
 
-func (plug *glueplug) Arg(name string, valtype string, desc string) *glueplug {
+func (plug *glueplug) Arg(name string, valtype runtime.Type, desc string) *glueplug {
 	plug.annotation.Args = append(plug.annotation.Args, luatools.LuaFieldDesc{
 		Name: name,
 		Type: valtype,
@@ -117,7 +119,7 @@ func (plug *glueplug) MockReturn(returnArgs ...lua.LValue) *glueplug {
 	return plug
 }
 
-func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
+func (plug *glueplug) Do(fn func(R runtime.Runtime, args *runtime.Arguments) (runtime.RTValue, error)) error {
 	if len(plug.name) == 0 {
 		return errors.New(
 			"Trying to install a module with empty name",
@@ -129,67 +131,98 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 	mode := plug.mode
 	bypass := plug.bypass
 
-	wrapped := glue.lstate.NewFunction(
-		func(L *lua.LState) int {
+	glue.Runtime.SetFunction(
+		name,
+		plug.short,
+		[]runtime.ArgDef{},
+		func(R runtime.Runtime, args *runtime.Arguments) runtime.RTValue {
+			fmt.Println("Triggering " + name)
 			if bypass {
-				res, err := fn(L)
+				res, err := fn(R, args)
 				if err != nil {
-					L.RaiseError("%s", err.Error())
+					R.RaiseError("%s", err.Error())
 				}
 				return res
 			}
 
-			if glue.Testing() {
-				L.RaiseError("Attempted to run module in test mode")
-				return 0
-			}
+			glue.Plan.Step(name, func() error {
+				_, err := fn(R, args)
+				// glue.SaveTrace(name, fmt.Sprintf("args[%i]", len(args)), err)
+				return err
+			})
 
-			active, err := glue.AtActiveLevel()
-
-			if err != nil {
-				L.RaiseError("%s", err.Error())
-				return 0
-			}
-
-			skip := !active || glue.DryRun
-
-			if glue.DryRun && active {
-				inputs := luatools.GetAllArgsAsStrings(L)
-				text := fmt.Sprintf(
-					"(mocked) %s(%s)", name, strings.Join(inputs, ", "))
-				glue.Log.Info(text)
-			}
-
-			// We don't run functions in dry mode or when the current nesting level is not active
-			if skip {
-				for _, arg := range plug.mockReturn {
-					L.Push(arg)
-				}
-				return len(plug.mockReturn)
-			}
-
-			res, err := fn(L)
-
-			glue.SaveTrace(name, L, err)
-
-			if err != nil && glue.FailFast {
-				L.RaiseError("%s", err.Error())
-			}
-
-			return res
+			return nil
 		})
 
-	path, err := luatools.SetNestedGlobalValue(
-		glue.lstate,
-		name,
-		wrapped,
-	)
+	// wrapped := glue.Runtime.NewFunction(
+	// 	func(L *lua.LState) int {
+	// 		if bypass {
+	// 			res, err := fn(L)
+	// 			if err != nil {
+	// 				L.RaiseError("%s", err.Error())
+	// 			}
+	// 			return res
+	// 		}
 
-	glue.Annotations.AddNestedTable(path)
+	// 		if glue.Testing() {
+	// 			L.RaiseError("Attempted to run module in test mode")
+	// 			return 0
+	// 		}
 
-	if err != nil {
-		return err
-	}
+	// 		// active, err := glue.AtActiveLevel()
+
+	// 		// if err != nil {
+	// 		// 	L.RaiseError("%s", err.Error())
+	// 		// 	return 0
+	// 		// }
+
+	// 		// skip := !active || glue.DryRun
+
+	// 		// if glue.DryRun && active {
+	// 		// 	inputs := luatools.GetAllArgsAsStrings(L)
+	// 		// 	text := fmt.Sprintf(
+	// 		// 		"(mocked) %s(%s)", name, strings.Join(inputs, ", "))
+	// 		// 	glue.Log.Info(text)
+	// 		// }
+
+	// 		// We don't run functions in dry mode or when the current nesting level is not active
+	// 		// if skip {
+	// 		// 	for _, arg := range plug.mockReturn {
+	// 		// 		L.Push(arg)
+	// 		// 	}
+	// 		// 	return len(plug.mockReturn)
+	// 		// }
+
+	// 		executor := func() error {
+
+	// 			return nil
+	// 		}
+
+	// 		glue.Plan.Step(plug.name, executor)
+
+	// 		// res, err := fn(L)
+
+	// 		// glue.SaveTrace(name, L, err)
+
+	// 		// if err != nil && glue.FailFast {
+	// 		// 	L.RaiseError("%s", err.Error())
+	// 		// }
+
+	// 		// return res
+	// 		return 0
+	// 	})
+
+	// path, err := luatools.SetNestedGlobalValue(
+	// 	glue.lstate,
+	// 	name,
+	// 	wrapped,
+	// )
+
+	// glue.Annotations.AddNestedTable(path)
+
+	// if err != nil {
+	// 	return err
+	// }
 
 	mod := &GlueModule{
 		Name:     name,
@@ -197,7 +230,7 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 		Short:    plug.short,
 		Mode:     mode,
 		Examples: plug.examples,
-		fn:       fn,
+		// fn:       fn,
 	}
 
 	glue.Modules = append(glue.Modules, mod)
@@ -208,5 +241,5 @@ func (plug *glueplug) Do(fn luatools.LuaFuncWithError) error {
 		Desc:    plug.short,
 	})
 
-	return err
+	return nil
 }

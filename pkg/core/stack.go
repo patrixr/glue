@@ -8,7 +8,7 @@ type ScriptType int
 
 const (
 	FILE ScriptType = 1 << iota
-	STRING
+	STR
 	REMOTE
 )
 

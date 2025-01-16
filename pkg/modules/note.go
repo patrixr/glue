@@ -2,7 +2,7 @@ package modules
 
 import (
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 const ABOUT_CACHE_KEY = "annotation:about"
@@ -31,13 +31,14 @@ func init() {
 		glue.Plug().
 			Name("note").
 			Short("Annotate the current group with some details").
-			Arg("brief", "string", "short explanation of the next step").
+			Arg("brief", STRING, "short explanation of the next step").
 			Mode(core.NONE).
 			Bypass().
-			Do(luatools.StrFunc(func(s string) error {
-				glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s)
-				return nil
-			}))
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				s := args.EnsureString(0)
+				glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s.String())
+				return nil, nil
+			})
 
 		return nil
 	})

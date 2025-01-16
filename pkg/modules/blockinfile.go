@@ -9,28 +9,29 @@ import (
 	"strings"
 
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Annotations.AddClass("BlockinfileParams").
-			Field("path", "string", "the file to insert the block into").
-			Field("block", "string", "the multi-line text block to be inserted or updated").
-			Field("insertafter?", "string", "the multi-line text block to be inserted or updated").
-			Field("insertbefore?", "string", "the multi-line text block to be inserted or updated").
-			Field("marker?", "string", "the multi-line text block to be inserted or updated").
-			Field("markerbegin?", "string", "the multi-line text block to be inserted or updated").
-			Field("markerend?", "string", "the multi-line text block to be inserted or updated").
-			Field("state", "boolean", "the multi-line text block to be inserted or updated").
-			Field("backup?", "boolean", "the multi-line text block to be inserted or updated").
-			Field("create?", "boolean", "the multi-line text block to be inserted or updated")
+			Field("path", STRING, "the file to insert the block into").
+			Field("block", STRING, "the multi-line text block to be inserted or updated").
+			Field("insertafter?", STRING, "the multi-line text block to be inserted or updated").
+			Field("insertbefore?", STRING, "the multi-line text block to be inserted or updated").
+			Field("marker?", STRING, "the multi-line text block to be inserted or updated").
+			Field("markerbegin?", STRING, "the multi-line text block to be inserted or updated").
+			Field("markerend?", STRING, "the multi-line text block to be inserted or updated").
+			Field("state", BOOL, "the multi-line text block to be inserted or updated").
+			Field("backup?", BOOL, "the multi-line text block to be inserted or updated").
+			Field("create?", BOOL, "the multi-line text block to be inserted or updated")
 
+		// @TODO: class annotation for BlockParams
 		glue.Plug().
 			Name("blockinfile").
 			Short("Insert/update/remove a block of multi-line text surrounded by customizable markers in a file").
-			Arg("block_params", "BlockinfileParams", "the configuration for the block insertion").
+			Arg("block_params", DICT, "the configuration for the block insertion").
 			Long(q.Paragraph(`
 				The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
 				The block is surrounded by customizable markers to define its boundaries.
@@ -63,17 +64,24 @@ func init() {
 					]],
 				})
 			`)).
-			Do(luatools.TableFunc(func(props BlockOpts) error {
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				data := args.EnsureDict(0).Map()
+				props, err := DecodeMap[BlockOpts](data)
+
+				if err != nil {
+					return nil, err
+				}
+
 				path, err := glue.SmartPath(props.Path)
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				props.Path = path
 
-				return BlockInFile(props)
-			}))
+				return nil, BlockInFile(props)
+			})
 
 		return nil
 	})

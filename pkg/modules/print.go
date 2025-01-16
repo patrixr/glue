@@ -2,8 +2,7 @@ package modules
 
 import (
 	"github.com/patrixr/glue/pkg/core"
-	"github.com/patrixr/glue/pkg/luatools"
-	lua "github.com/yuin/gopher-lua"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -13,23 +12,12 @@ func init() {
 			Name("print").
 			Short("Print a string").
 			Long("Print a string").
-			Arg("obj", "any", "the message or object to log").
+			Arg("obj", ANY, "the message or object to log").
 			Example("print('Hello, world!')").
 			Bypass().
-			Do(func(L *lua.LState) (int, error) {
-				ok, err := glue.AtActiveLevel()
-
-				if err != nil {
-					return 0, err
-				}
-
-				if !ok {
-					return 0, nil
-				}
-
-				input := luatools.GetArgAsString(L, 1)
-				glue.Log.Info(input)
-				return 0, nil
+			Do(func(R Runtime, args *Arguments) (RTValue, error) {
+				glue.Log.Info(args.EnsureString(0).String())
+				return nil, nil
 			})
 
 		return nil

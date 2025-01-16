@@ -3,7 +3,7 @@ package modules
 import (
 	"github.com/patrixr/glue/pkg/core"
 	"github.com/patrixr/glue/pkg/homebrew"
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/runtime"
 )
 
 func init() {
@@ -19,14 +19,15 @@ type HomebrewParams struct {
 }
 
 func HomebrewMod(glue *core.Glue) error {
+	// @TODO: type the array's items (e.g string[])
 	glue.Annotations.AddClass("HomebrewParams").
-		Field("packages?", "string[]", "the homebrew packages to install").
-		Field("taps?", "string[]", "the homebrew taps to install").
-		Field("mas?", "string[]", "the homebrew mac app stores to install").
-		Field("whalebrews?", "string[]", "the whalebrews install").
-		Field("casks?", "string[]", "the homebrew casks to install")
+		Field("packages?", ARRAY, "the homebrew packages to install").
+		Field("taps?", ARRAY, "the homebrew taps to install").
+		Field("mas?", ARRAY, "the homebrew mac app stores to install").
+		Field("whalebrews?", ARRAY, "the whalebrews install").
+		Field("casks?", ARRAY, "the homebrew casks to install")
 
-	ensure := luatools.Func(func() error {
+	ensure := func(R Runtime, args *Arguments) (RTValue, error) {
 		if !glue.Verbose {
 			glue.Log.Quiet()
 		}
@@ -34,12 +35,18 @@ func HomebrewMod(glue *core.Glue) error {
 		defer glue.Log.Loud()
 
 		if err := homebrew.InstallHomebrew(glue.Log.Stdout, glue.Log.Stderr); err != nil {
-			return err
+			return nil, err
 		}
-		return homebrew.UpdateHomebrew(glue.Log.Stdout, glue.Log.Stderr)
-	})
+		return nil, homebrew.UpdateHomebrew(glue.Log.Stdout, glue.Log.Stderr)
+	}
 
-	mainHomebrew := luatools.TableFunc(func(params HomebrewParams) error {
+	mainHomebrew := func(R Runtime, args *Arguments) (RTValue, error) {
+		params, err := DecodeDict[HomebrewParams](args.EnsureDict(0))
+
+		if err != nil {
+			return nil, err
+		}
+
 		brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
 		if !glue.Verbose {
@@ -64,10 +71,10 @@ func HomebrewMod(glue *core.Glue) error {
 			brew.Whalebrew(it)
 		}
 
-		return brew.Install()
-	})
+		return nil, brew.Install()
+	}
 
-	upgrade := luatools.Func(func() error {
+	upgrade := func(R Runtime, args *Arguments) (RTValue, error) {
 		if !glue.Verbose {
 			glue.Log.Quiet()
 		}
@@ -76,8 +83,8 @@ func HomebrewMod(glue *core.Glue) error {
 
 		brew := homebrew.NewHomebrew(glue.Log.Stdout, glue.Log.Stderr)
 
-		return brew.Upgrade()
-	})
+		return nil, brew.Upgrade()
+	}
 
 	glue.Plug().
 		Name("homebrew_install").
@@ -85,10 +92,11 @@ func HomebrewMod(glue *core.Glue) error {
 		Example("homebrew_install()").
 		Do(ensure)
 
+	// @TODO: type the class HomebrewParams
 	glue.Plug().
 		Name("homebrew").
 		Short("Marks a homebrew package for installation").
-		Arg("params", "HomebrewParams", "the packages to install").
+		Arg("params", DICT, "the packages to install").
 		Do(mainHomebrew)
 
 	glue.Plug().
