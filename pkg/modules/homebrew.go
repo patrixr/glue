@@ -11,14 +11,14 @@ func init() {
 }
 
 func HomebrewMod(glue *core.Glue) error {
-	// @TODO: type the array's items (e.g string[])
-
 	ensure := func(R Runtime, args *Arguments) (RTValue, error) {
 		if !glue.Verbose {
 			glue.Log.Quiet()
 		}
 
 		defer glue.Log.Loud()
+
+		glue.Log.Info("Ensuring Homebrew is installed")
 
 		if err := InstallHomebrew(glue.Machine, glue.Log.Stdout, glue.Log.Stderr); err != nil {
 			return nil, err
@@ -39,6 +39,8 @@ func HomebrewMod(glue *core.Glue) error {
 
 		defer glue.Log.Loud()
 
+		glue.Log.Info("Running Homebrew")
+
 		return nil, HomebrewBundle(glue.Machine, params, glue.Log.Stdout, glue.Log.Stderr)
 	}
 
@@ -49,16 +51,18 @@ func HomebrewMod(glue *core.Glue) error {
 
 		defer glue.Log.Loud()
 
+		glue.Log.Info("Upgrading Homebrew packages")
+
 		return nil, HomebrewUpgrade(glue.Machine, glue.Log.Stdout, glue.Log.Stderr)
 	}
 
-	glue.Plug("homebrew_install", core.MODULE).
+	glue.Plug("HomebrewInstall", core.MODULE).
 		Brief("Installs Homebrew if not already installed").
 		Do(ensure)
 
 	StringArray := TypedArray(STRING)
 
-	glue.Plug("homebrew", core.MODULE).
+	glue.Plug("Homebrew", core.MODULE).
 		Brief("Marks a homebrew package for installation").
 		Arg("params", CustomStruct("HomebrewParams", []Field{
 			NewField("packages?", StringArray, "the homebrew packages to install"),
@@ -69,7 +73,7 @@ func HomebrewMod(glue *core.Glue) error {
 		}), "the packages to install").
 		Do(mainHomebrew)
 
-	glue.Plug("homebrew_upgrade", core.MODULE).
+	glue.Plug("HomebrewUpgrade", core.MODULE).
 		Brief("Upgrades all homebrew packages").
 		Do(upgrade)
 
