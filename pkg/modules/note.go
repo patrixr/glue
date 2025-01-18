@@ -12,31 +12,28 @@ func init() {
 
 		// When a module is run, we check if there is an annotation from the user
 		// and we attach it to the trace.
-		glue.On(core.EV_NEW_TRACE, func(_ string, data any) error {
-			note, ok := glue.Stack.CurrentGroup().Get(ABOUT_CACHE_KEY)
+		// glue.On(core.EV_NEW_TRACE, func(_ string, data any) error {
+		// 	note, ok := glue.Stack.CurrentGroup().Get(ABOUT_CACHE_KEY)
 
-			if !ok || len(note) == 0 {
-				return nil
-			}
+		// 	if !ok || len(note) == 0 {
+		// 		return nil
+		// 	}
 
-			trace, ok := data.(*core.Trace)
+		// 	trace, ok := data.(*core.Trace)
 
-			if ok {
-				trace.About = note
-			}
+		// 	if ok {
+		// 		trace.About = note
+		// 	}
 
-			return nil
-		})
+		// 	return nil
+		// })
 
-		glue.Plug().
-			Name("note").
-			Short("Annotate the current group with some details").
+		glue.Plug("note", core.FUNCTION).
+			Brief("Annotate the current group with some details").
 			Arg("brief", STRING, "short explanation of the next step").
-			Mode(core.NONE).
-			Bypass().
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
-				s := args.EnsureString(0)
-				glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s.String())
+				// s := args.EnsureString(0)
+				// glue.Stack.CurrentGroup().Set(ABOUT_CACHE_KEY, s.String())
 				return nil, nil
 			})
 

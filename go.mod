@@ -1,13 +1,16 @@
 module github.com/patrixr/glue
 
-go 1.22.0
+go 1.23.4
 
 require (
 	github.com/charmbracelet/glamour v0.8.0
 	github.com/charmbracelet/log v0.4.0
+	github.com/golang-cz/textcase v1.2.1
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a
 	github.com/otiai10/copy v1.14.0
-	github.com/patrixr/q v0.11.2
+	github.com/patrixr/auteur v0.0.2-alpha
+	github.com/patrixr/q v0.11.3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7
@@ -29,7 +32,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -38,7 +40,7 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.3 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

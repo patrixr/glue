@@ -19,9 +19,7 @@ var documentCmd = &cobra.Command{
 	Short: "Generates a documentation of Glue's internal functions",
 	Long:  `Generates a documentation of Glue's internal functions`,
 	Run: func(cmd *cobra.Command, args []string) {
-		glue := core.NewGlueWithOptions(core.GlueOptions{
-			DryRun: true,
-		})
+		glue := core.NewGlueWithOptions(core.GlueOptions{})
 
 		format, _ := cmd.Flags().GetString("format")
 
@@ -36,12 +34,12 @@ var documentCmd = &cobra.Command{
 		}
 
 		if format == "lua" {
-			fmt.Println(docs.GenerateLuaDocumentation(glue))
+			fmt.Println(docs.PrintLuaDocumentation(glue))
 			return
 		}
 
 		if format == "md" {
-			fmt.Println(docs.GenerateMarkdownDocumentation(glue))
+			fmt.Println(docs.PrintMarkdownDocumentation(glue))
 			return
 		}
 	},

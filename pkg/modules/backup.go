@@ -12,10 +12,8 @@ import (
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Plug().
-			Name("backup").
-			Short("Creates a backup of a file").
-			Long("Creates a backup of a file").
+		glue.Plug("backup", core.MODULE).
+			Brief("Creates a backup of a file").
 			Arg("path", STRING, "the file to create a backup of").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				str := args.EnsureString(0)

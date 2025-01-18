@@ -1,4 +1,4 @@
-package luatools
+package lua
 
 import (
 	"encoding/json"

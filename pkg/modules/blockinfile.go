@@ -2,68 +2,66 @@ package modules
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/patrixr/auteur"
 	"github.com/patrixr/glue/pkg/core"
 	. "github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
 
 func init() {
+	auteur.Write("Modules", "Blockinfile", q.Paragraph(`
+		The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
+		The block is surrounded by customizable markers to define its boundaries.
+
+		Options:
+		- block: The multi-line text block to be inserted or updated.
+		- insertafter: A pattern to insert the block after.
+		- insertbefore: A pattern to insert the block before.
+		- marker: The marker template with "{mark}" as a placeholder.
+		- markerbegin: The text to replace "{mark}" for the beginning marker.
+		- markerend: The text to replace "{mark}" for the ending marker.
+		- state: A boolean to indicate whether to insert/update (true) or remove (false) the block.
+		- backup: A boolean to indicate whether to create a backup of the file.
+		- create: A boolean to indicate whether to create the file if it does not exist.
+
+		Example usage in Lua:
+
+		blockinfile({
+			Insertafter = "pattern to insert after",
+			Insertbefore = "pattern to insert before",
+			Marker = "# {mark}",
+			Markerbegin = "BEGIN GLUE CUSTOM BLOCK",
+			Markerend = "END GLUE CUSTOM BLOCK",
+			State = true,
+			Backup = true,
+			Create = true,
+			Block = [[
+				This is a block of text
+				that spans multiple lines.
+			]],
+		})
+	`))
+
 	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Annotations.AddClass("BlockinfileParams").
-			Field("path", STRING, "the file to insert the block into").
-			Field("block", STRING, "the multi-line text block to be inserted or updated").
-			Field("insertafter?", STRING, "the multi-line text block to be inserted or updated").
-			Field("insertbefore?", STRING, "the multi-line text block to be inserted or updated").
-			Field("marker?", STRING, "the multi-line text block to be inserted or updated").
-			Field("markerbegin?", STRING, "the multi-line text block to be inserted or updated").
-			Field("markerend?", STRING, "the multi-line text block to be inserted or updated").
-			Field("state", BOOL, "the multi-line text block to be inserted or updated").
-			Field("backup?", BOOL, "the multi-line text block to be inserted or updated").
-			Field("create?", BOOL, "the multi-line text block to be inserted or updated")
-
-		// @TODO: class annotation for BlockParams
-		glue.Plug().
-			Name("blockinfile").
-			Short("Insert/update/remove a block of multi-line text surrounded by customizable markers in a file").
-			Arg("block_params", DICT, "the configuration for the block insertion").
-			Long(q.Paragraph(`
-				The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
-				The block is surrounded by customizable markers to define its boundaries.
-
-				Options:
-				- block: The multi-line text block to be inserted or updated.
-				- insertafter: A pattern to insert the block after.
-				- insertbefore: A pattern to insert the block before.
-				- marker: The marker template with "{mark}" as a placeholder.
-				- markerbegin: The text to replace "{mark}" for the beginning marker.
-				- markerend: The text to replace "{mark}" for the ending marker.
-				- state: A boolean to indicate whether to insert/update (true) or remove (false) the block.
-				- backup: A boolean to indicate whether to create a backup of the file.
-				- create: A boolean to indicate whether to create the file if it does not exist.
-
-				Example usage in Lua:
-
-				blockinfile({
-					Insertafter = "pattern to insert after",
-					Insertbefore = "pattern to insert before",
-					Marker = "# {mark}",
-					Markerbegin = "BEGIN GLUE CUSTOM BLOCK",
-					Markerend = "END GLUE CUSTOM BLOCK",
-					State = true,
-					Backup = true,
-					Create = true,
-					Block = [[
-						This is a block of text
-						that spans multiple lines.
-					]],
-				})
-			`)).
+		glue.Plug("blockinfile", core.MODULE).
+			Brief("Insert/update/remove a block of multi-line text surrounded by customizable markers in a file").
+			Arg("block_params", CustomStruct("BlockinfileParams", []Field{
+				NewField("path", STRING, "the file to insert the block into"),
+				NewField("block", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("insertafter?", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("insertbefore?", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("marker?", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("markerbegin?", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("markerend?", STRING, "the multi-line text block to be inserted or updated"),
+				NewField("state", BOOL, "the multi-line text block to be inserted or updated"),
+				NewField("backup?", BOOL, "the multi-line text block to be inserted or updated"),
+				NewField("create?", BOOL, "the multi-line text block to be inserted or updated"),
+			}), "the configuration for the block insertion").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				data := args.EnsureDict(0).Map()
 				props, err := DecodeMap[BlockOpts](data)
@@ -77,6 +75,8 @@ func init() {
 				if err != nil {
 					return nil, err
 				}
+
+				glue.Log.Info("[Blockinfile]", "path", props.Path)
 
 				props.Path = path
 
@@ -180,7 +180,6 @@ func BlockInFile(props BlockOpts) error {
 	flag := os.O_RDWR
 
 	if props.State && len(props.Block) == 0 {
-		fmt.Println("returning error")
 		return errors.New("Cannot insert empty block")
 	}
 

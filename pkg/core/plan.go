@@ -1,17 +1,20 @@
 package core
 
+import "strings"
+
 type StepFunc func() error
 
 type Plan interface {
 	Execute() []error
 	Step(name string, fn StepFunc)
 	Add(plan Plan)
+	Pretty() string
 }
 
 type TreePlan struct {
-	Name     string
+	Name     string `json:"name"`
 	Fn       StepFunc
-	Children []Plan
+	Children []Plan `json:"children"`
 }
 
 func (step *TreePlan) Execute() []error {
@@ -48,5 +51,26 @@ func NewPlan(name string) Plan {
 		Fn:       nil,
 		Name:     name,
 		Children: []Plan{},
+	}
+}
+
+func (step *TreePlan) Pretty() string {
+	builder := strings.Builder{}
+	step.prettyRecursive(&builder, 0)
+	return builder.String()
+}
+
+// (internal)
+func (step *TreePlan) prettyRecursive(builder *strings.Builder, depth int) {
+	for i := 0; i < depth; i++ {
+		builder.WriteString("  ")
+	}
+	builder.WriteString("+ ")
+	builder.WriteString(step.Name)
+	builder.WriteString("\n")
+
+	for _, child := range step.Children {
+		childPlan := child.(*TreePlan)
+		childPlan.prettyRecursive(builder, depth+1)
 	}
 }

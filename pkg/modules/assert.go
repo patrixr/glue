@@ -7,13 +7,10 @@ import (
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Plug().
-			Name("assert").
-			Short("Asserts the given boolean and raises and error if problematic").
+		glue.Plug("assert", core.FUNCTION).
+			Brief("Asserts the given boolean and raises and error if problematic").
 			Arg("value", BOOL, "the condition to assert on").
 			Arg("brief", STRING, "short explanation of the next step").
-			Mode(core.NONE).
-			Bypass().
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				if !glue.Testing() {
 					return nil, nil

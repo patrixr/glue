@@ -7,13 +7,10 @@ import (
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Plug().
-			Name("test").
-			Short("Create a test case").
+		glue.Plug("test", core.FUNCTION).
+			Brief("Create a test case").
 			Arg("name", STRING, "A description of the test").
 			Arg("fn", FUNC, "The test implementation").
-			Mode(core.NONE).
-			Bypass().
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				name := args.EnsureString(0).String()
 				fn := args.EnsureFunction(0)

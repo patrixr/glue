@@ -3,13 +3,13 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/patrixr/glue/pkg/luatools"
+	. "github.com/patrixr/glue/pkg/blueprint"
+	"github.com/patrixr/glue/pkg/machine"
 	"github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/glue/pkg/runtime/lua"
 	"github.com/patrixr/q"
@@ -19,34 +19,29 @@ type Glue struct {
 	q.Eventful
 	Testable
 
-	Stack          GlueStack
-	ExecutionTrace []Trace
-	Plan           Plan
-	DryRun         bool
-	Verbose        bool
-	RunTests       bool
-	Done           bool
-	Unsafe         bool
-	FailFast       bool
-	Log            *GlueLogger
-	Modules        []*GlueModule
-	Annotations    luatools.LuaAnnotations
-	UserSelector   Selector
-	Cache          q.Cache[string]
-	Context        context.Context
-	Runtime        runtime.Runtime
+	Stack        GlueStack
+	BluePrint    Blueprint
+	Verbose      bool
+	RunTests     bool
+	Done         bool
+	Unsafe       bool
+	FailFast     bool
+	Log          *GlueLogger
+	Modules      []*GluePlugin
+	UserSelector Selector
+	Cache        q.Cache[string]
+	Context      context.Context
+	Runtime      runtime.Runtime
+	Machine      machine.Machine
 }
 
 type GlueOptions struct {
-	DryRun   bool
 	Selector string
 	Verbose  bool
 }
 
 func NewGlue() *Glue {
-	return NewGlueWithOptions(GlueOptions{
-		DryRun: false,
-	})
+	return NewGlueWithOptions(GlueOptions{})
 }
 
 func NewGlueWithOptions(options GlueOptions) *Glue {
@@ -58,14 +53,14 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 		Runtime:      lua.NewLuaRuntime(),
 		Eventful:     q.NewEventEmitter(ctx, 1),
 		Testable:     NewTestSuite(),
-		DryRun:       options.DryRun,
 		Verbose:      options.Verbose,
 		UserSelector: NewSelectorWithPrefix(options.Selector, []string{RootLevel}),
 		Log:          logger,
 		Cache:        q.NewInMemoryCache[string](time.Hour * 8760),
 		Context:      ctx,
 		RunTests:     true,
-		Plan:         NewPlan("<root>"),
+		BluePrint:    nil,
+		Machine:      machine.NewLocalMachine(),
 	}
 
 	InstallNativeGlueModules(glue)
@@ -73,56 +68,64 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 	return glue
 }
 
-func (glue *Glue) Execute(file string) error {
+// Main entry point for glue
+// Given a script file, it compiles it into an executable plan
+func (glue *Glue) CompilePlan(file string) (Blueprint, error) {
 	if glue.Done {
-		return errors.New("Unable to reuse the same Glue instance")
+		return nil, errors.New("Unable to reuse the same Glue instance")
 	}
 
-	_, errors := glue.Fire(EV_GLUE_END, glue)
+	glue.BluePrint = NewSerialBlueprint("<root>")
+
+	defer func() {
+		glue.BluePrint = nil
+	}()
+
+	_, errors := glue.Fire(EV_GLUE_PLAN_END, glue)
 
 	if len(errors) > 0 {
-		return errors[0]
+		return nil, errors[0]
 	}
 
-	if err := glue.RunFileRaw(file); err != nil {
-		return err
+	if err := glue.execFile(file); err != nil {
+		return nil, err
 	}
-
-	fmt.Println("THE PLAN:")
-	fmt.Println(glue.Plan)
 
 	if glue.RunTests {
 		glue.Test()
 	}
 
-	_, errors = glue.Fire(EV_GLUE_END, glue)
+	_, errors = glue.Fire(EV_GLUE_PLAN_END, glue)
 
 	if len(errors) > 0 {
-		return errors[0]
+		return nil, errors[0]
 	}
 
-	return nil
+	return glue.BluePrint, nil
 }
 
-func (glue *Glue) AtActiveLevel() (bool, error) {
-	return true, nil
-	// if glue.Testing() {
-	// 	return true, nil
-	// }
+// (internal)
+// Checks if the current group is allowed to run based on the user's filter options
+func (glue *Glue) canRunGroup(group string) (bool, error) {
+	if glue.Testing() {
+		return true, nil
+	}
 
-	// if len(glue.Stack.ExecutionStack) == 0 {
-	// 	return false, nil
-	// }
+	if len(glue.Stack.ExecutionStack) == 0 {
+		return false, nil
+	}
 
-	// script := glue.Stack.ActiveScript()
-	// return glue.UserSelector.Test(
-	// 	q.Map(script.GroupStack, func(grp *GlueCodeGroup) string {
-	// 		return grp.Name
-	// 	}),
-	// )
+	script := glue.Stack.ActiveScript()
+	groups := q.Map(script.GroupStack, func(grp *GlueCodeGroup) string {
+		return grp.Name
+	})
+
+	return glue.UserSelector.Test(append(groups, group))
 }
 
-func (glue *Glue) ExecuteString(script string) error {
+// (internal)
+// Executes a script from a string
+func (glue *Glue) execString(script string) error {
 	if glue.Done {
 		return errors.New("Unable to reuse the same Glue instance")
 	}
@@ -138,7 +141,9 @@ func (glue *Glue) ExecuteString(script string) error {
 	return nil
 }
 
-func (glue *Glue) RunFileRaw(file string) error {
+// (internal)
+// Executes a script from a file
+func (glue *Glue) execFile(file string) error {
 	path, err := glue.SmartPath(file)
 
 	if err != nil {
@@ -152,6 +157,7 @@ func (glue *Glue) RunFileRaw(file string) error {
 	return glue.Runtime.ExecFile(path)
 }
 
+// Getwd returns the working directory of the active script or the current working directory
 func (glue *Glue) Getwd() (string, error) {
 	if glue.Stack.HasActiveScript() {
 		script := glue.Stack.ActiveScript()
@@ -161,6 +167,8 @@ func (glue *Glue) Getwd() (string, error) {
 	return os.Getwd()
 }
 
+// SmartPath resolves a path to an absolute path
+// If called from within a script, it resolves the path relative to the script's directory
 func (glue *Glue) SmartPath(path string) (string, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
@@ -190,12 +198,4 @@ func (glue *Glue) SmartPath(path string) (string, error) {
 func (glue *Glue) Close() {
 	glue.Done = true
 	glue.Runtime.Close()
-}
-
-func (glue *Glue) Result() (bool, int, []Trace) {
-	failedTraces := q.Filter(glue.ExecutionTrace, func(trace Trace) bool {
-		return trace.Error != nil
-	})
-
-	return len(failedTraces) == 0, len(failedTraces), glue.ExecutionTrace
 }

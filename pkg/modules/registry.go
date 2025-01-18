@@ -4,6 +4,9 @@ import (
 	"github.com/patrixr/glue/pkg/core"
 )
 
+const AUTEUR_MODUlES = "Modules"
+const AUTEUR_UTILS = "Utils"
+
 type ModuleInstaller func(glue *core.Glue) error
 
 type ModuleRegistry struct {

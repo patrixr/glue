@@ -28,7 +28,7 @@ func NewLuaRuntime() runtime.Runtime {
 }
 
 func (luaruntime *LuaRuntime) Close() {
-	luaruntime.Close()
+	luaruntime.L.Close()
 }
 
 func (luaruntime *LuaRuntime) ExecFile(path string) error {
@@ -216,13 +216,7 @@ func (luaruntime *LuaRuntime) SetFunction(
 		val := fn(luaruntime, runtime.NewArguments(luaruntime, values))
 
 		if val != nil {
-			lv, ok := val.(LuaValue[lua.LValue])
-
-			if !ok {
-				luaruntime.RaiseError("Panic! Could not recognize the return of function %s as a Lua value: %s", name, val.String())
-			}
-
-			L.Push(lv.Raw())
+			L.Push(luaruntime.getRawLuaValue(val))
 			return 1
 		}
 
@@ -282,7 +276,6 @@ func (luaruntime *LuaRuntime) SetGlobal(path string, val runtime.RTValue) ([]str
 	case LuaFunctionVal:
 		value = v.Raw()
 	default:
-		fmt.Println("ASD")
 		return []string{}, errors.New("SetGlobal failed: Unknown type " + runtime.TypeName(val.Type()))
 	}
 
@@ -359,4 +352,26 @@ func (luaruntime *LuaRuntime) GetOrCreateGlobalTable(name string) (*lua.LTable, 
 	}
 
 	return table, nil
+}
+
+func (luaruntime *LuaRuntime) getRawLuaValue(v runtime.RTValue) lua.LValue {
+	switch v.(type) {
+	case LuaValue[lua.LValue]:
+		return v.(LuaValue[lua.LValue]).Raw()
+	case LuaStringVal:
+		return lua.LString(v.(LuaStringVal).Raw())
+	case LuaBoolVal:
+		return lua.LBool(v.(LuaBoolVal).Raw())
+	case LuaNumberVal:
+		return lua.LNumber(v.(LuaNumberVal).Raw())
+	case LuaArrayVal:
+		return v.(LuaArrayVal).Raw()
+	case LuaDictVal:
+		return v.(LuaDictVal).Raw()
+	case LuaNilVal:
+		return lua.LNil
+	default:
+		luaruntime.RaiseError("Could not recognize the value as a Lua (%s)", runtime.TypeName(v.Type()))
+	}
+	return lua.LNil
 }

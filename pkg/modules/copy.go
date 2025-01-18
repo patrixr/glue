@@ -12,18 +12,14 @@ import (
 
 func init() {
 	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Annotations.AddClass("CopyOpts").
-			Field("source", STRING, "the file or folder to copy").
-			Field("dest", STRING, "the destination to copy to").
-			Field("strategy?", STRING, "a strategy for how to manage conflicts (replace or merge, defaults to merge)").
-			Field("symlink?", STRING, "how to handle symlinks (deep/shallow/skip or the default skip)")
-
-		// @TODO: class annotation for CopyOpts
-		glue.Plug().
-			Name("copy").
-			Short("Copies folder").
-			Long("Copies").
-			Arg("opts", DICT, "the copy options").
+		glue.Plug("copy", core.MODULE).
+			Brief("Copies folder").
+			Arg("opts", CustomStruct("CopyOpts", []Field{
+				NewField("source", STRING, "the file or folder to copy"),
+				NewField("dest", STRING, "the destination to copy to"),
+				NewField("strategy?", STRING, "a strategy for how to manage conflicts (replace or merge, defaults to merge)"),
+				NewField("symlink?", STRING, "how to handle symlinks (deep/shallow/skip or the default skip)"),
+			}), "the copy options").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				opts, err := DecodeMap[CopyOpts](args.EnsureDict(0).Map())
 

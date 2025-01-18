@@ -16,8 +16,11 @@ func NewDict(lv *lua.LTable) runtime.RTDict {
 
 func (dict LuaDictVal) Map() map[interface{}]interface{} {
 	opt := gluamapper.Option{
-		TagName: "json",
+		TagName:     "json",
+		ErrorUnused: false,
+		NameFunc:    gluamapper.ToUpperCamelCase,
 	}
+
 	var tbl lua.LValue = dict.Raw()
 	data, ok := gluamapper.ToGoValue(tbl, opt).(map[interface{}]interface{})
 	if ok {

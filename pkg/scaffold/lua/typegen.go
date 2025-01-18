@@ -1,9 +1,10 @@
-package luatools
+package lua
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/patrixr/glue/pkg/core"
 	"github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
@@ -19,6 +20,38 @@ type Annotable interface {
 	Render() string
 	Type() string
 }
+
+func GenerateTypeDefinitions(glue *core.Glue) string {
+	annotations := LuaAnnotations{}
+
+	for _, mod := range glue.Modules {
+		path := strings.Split(mod.Name, ".")
+		annotations.tryAddNestedField(path[:len(path)-1])
+
+		for _, arg := range mod.Args {
+			customStructType, isCustomStruct := arg.Type.(runtime.CustomStructType)
+
+			if !isCustomStruct {
+				continue
+			}
+
+			annotations.AddClass(customStructType.Name(), customStructType.Fields)
+		}
+
+		annotations.AddFunction(mod)
+
+	}
+
+	return annotations.Render()
+}
+
+// func GenerateFunctionType(mod *core.GluePlugin) string {
+
+// }
+
+// func GenerateCustomStructDefinition(arg runtime.Type) string {
+
+// }
 
 //
 // Annotation collection
@@ -45,12 +78,16 @@ func (annotations *LuaAnnotations) Add(annotation Annotable) {
 	annotations.items = append(annotations.items, annotation)
 }
 
-func (annotations *LuaAnnotations) AddClass(name string) *LuaClassAnnotation {
+func (annotations *LuaAnnotations) AddFunction(mod *core.GluePlugin) {
+	annotations.items = append(annotations.items, &LuaFuncAnnotation{mod})
+}
+
+func (annotations *LuaAnnotations) AddClass(name string, fields []runtime.Field) {
 	class := &LuaClassAnnotation{
-		Name: name,
+		Name:   name,
+		Fields: fields,
 	}
-	annotations.items = append(annotations.items, class)
-	return class
+	annotations.Add(class)
 }
 
 func (annotations *LuaAnnotations) Type() string {
@@ -63,7 +100,7 @@ func (annotations *LuaAnnotations) FindAllByType(kind string) []Annotable {
 	})
 }
 
-func (annotations *LuaAnnotations) FindTable(name string) *LuaTableAnnotation {
+func (annotations *LuaAnnotations) findTable(name string) *LuaTableAnnotation {
 	tables := annotations.FindAllByType(TABLE)
 	for _, item := range tables {
 		table, ok := item.(*LuaTableAnnotation)
@@ -79,14 +116,14 @@ func (annotations *LuaAnnotations) FindTable(name string) *LuaTableAnnotation {
 	return nil
 }
 
-func (annotations *LuaAnnotations) AddNestedTable(path []string) {
+func (annotations *LuaAnnotations) tryAddNestedField(path []string) {
 	if len(path) == 0 {
 		return
 	}
 
 	head := path[0]
 	tail := path[1:]
-	base := annotations.FindTable(head)
+	base := annotations.findTable(head)
 
 	if base == nil {
 		base = &LuaTableAnnotation{
@@ -109,7 +146,10 @@ func (annotations *LuaAnnotations) AddNestedTable(path []string) {
 	}
 }
 
-// (Nested) Table annotations
+// ------------------------------------------
+// Table annotations (for nested fields)
+// ------------------------------------------
+
 type LuaTableAnnotation struct {
 	Name     string
 	Children []*LuaTableAnnotation
@@ -144,29 +184,15 @@ func (tableAnno *LuaTableAnnotation) AddChild(name string) *LuaTableAnnotation {
 	return child
 }
 
-//
+// ------------------------------------------
 // Function annotations
-//
-
-type LuaFieldDesc struct {
-	Name string
-	Type runtime.Type
-	Desc string
-}
-
-type LuaReturnDesc struct {
-	Type string
-	Desc string
-}
+// ------------------------------------------
 
 type LuaFuncAnnotation struct {
-	Name    string
-	Desc    string
-	Args    []LuaFieldDesc
-	Returns []LuaReturnDesc
+	plug *core.GluePlugin
 }
 
-func (funcAnnotation *LuaFuncAnnotation) Type() string {
+func (mod *LuaFuncAnnotation) Type() string {
 	return FUNC
 }
 
@@ -175,29 +201,37 @@ func (funcAnnotation *LuaFuncAnnotation) Render() string {
 
 	builder.WriteString("---\n")
 
-	for _, line := range strings.Split(funcAnnotation.Desc, "\n") {
+	for _, line := range strings.Split(funcAnnotation.plug.Brief, "\n") {
 		builder.WriteString(fmt.Sprintf("--- %s\n", line))
 	}
 
 	builder.WriteString("---\n")
 
-	for _, arg := range funcAnnotation.Args {
-		builder.WriteString(fmt.Sprintf("---@param %s %s %s\n", arg.Name, arg.Type, arg.Desc))
+	for _, arg := range funcAnnotation.plug.Args {
+		builder.WriteString(fmt.Sprintf("---@param %s %s %s\n", arg.Name, runtime.TypeName(arg.Type), arg.Desc))
 	}
 
 	builder.WriteString("---\n")
 
-	for _, ret := range funcAnnotation.Returns {
-		builder.WriteString(fmt.Sprintf("---@return %s %s\n", ret.Type, ret.Desc))
+	if ret := funcAnnotation.plug.ReturnType; ret != nil {
+		name := ret.Name()
+		desc := ""
+
+		typeWithDesc, hasDesc := ret.(runtime.DescribableType)
+		if hasDesc {
+			desc = typeWithDesc.Describe()
+		}
+
+		builder.WriteString(fmt.Sprintf("---@return %s %s\n", name, desc))
 	}
 
 	builder.WriteString("---\n")
 
 	builder.WriteString(
 		fmt.Sprintf("function %s(%s) end",
-			funcAnnotation.Name,
-			strings.Join(q.Map(funcAnnotation.Args,
-				func(arg LuaFieldDesc) string {
+			funcAnnotation.plug.Name,
+			strings.Join(q.Map(funcAnnotation.plug.Args,
+				func(arg runtime.ArgDef) string {
 					return arg.Name
 				}), ", "),
 		),
@@ -208,13 +242,13 @@ func (funcAnnotation *LuaFuncAnnotation) Render() string {
 	return builder.String()
 }
 
-//
+// ------------------------------------------
 // Class annotations
-//
+// ------------------------------------------
 
 type LuaClassAnnotation struct {
 	Name   string
-	Fields []LuaFieldDesc
+	Fields []runtime.Field
 }
 
 func (classAnnotation *LuaClassAnnotation) Type() string {
@@ -227,19 +261,14 @@ func (classAnnotation *LuaClassAnnotation) Render() string {
 	builder.WriteString(fmt.Sprintf("---@class %s\n", classAnnotation.Name))
 
 	for _, field := range classAnnotation.Fields {
-		builder.WriteString(fmt.Sprintf("---@field %s %s %s\n", field.Name, runtime.TypeName(field.Type), field.Desc))
+		optstr := ""
+		if field.Optional {
+			optstr = "?"
+		}
+		builder.WriteString(fmt.Sprintf("---@field %s%s %s %s\n", field.Name, optstr, runtime.TypeName(field.Type), field.Desc))
 	}
 
 	builder.WriteString("\n")
 
 	return builder.String()
-}
-
-func (classAnnotation *LuaClassAnnotation) Field(name string, kind runtime.Type, desc string) *LuaClassAnnotation {
-	classAnnotation.Fields = append(classAnnotation.Fields, LuaFieldDesc{
-		Name: name,
-		Type: kind,
-		Desc: desc,
-	})
-	return classAnnotation
 }
