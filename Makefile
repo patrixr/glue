@@ -1,4 +1,4 @@
-.PHONY: tidy example example\:dry help build test clean install uninstall check-root document\:lua document\:md
+.PHONY: tidy example example\:dry help build test clean install uninstall check-root document\:lua document\:md release tag
 
 BIN_NAME := glue
 BUILD_FOLDER := $(CURDIR)/.out
@@ -27,11 +27,10 @@ help:
 	go run ./ --help
 
 tidy:
-	go install github.com/mfridman/tparse@latest
 	go mod tidy
 
 test:
-	ENV=test go test -json -v  ./...  | tparse -all
+	ENV=test go test -json -v  ./...  | go run github.com/mfridman/tparse@latest -all
 
 test\:raw:
 	ENV=test go test -v  ./...
@@ -58,7 +57,9 @@ check-root:
 		exit 1; \
 	fi
 
-release: test
+tag: test
 	git tag -a "v`cat ./VERSION`" -m "Release version `cat ./VERSION`"
 	git push origin v`cat ./VERSION`
-	gh release create v`cat ./VERSION`
+
+release:
+	gh release create  v`cat ./VERSION`
