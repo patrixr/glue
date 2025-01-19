@@ -57,3 +57,8 @@ check-root:
 		echo "This target must be run as root or with sudo."; \
 		exit 1; \
 	fi
+
+release: test
+	git tag -a "v`cat ./VERSION`" -m "Release version `cat ./VERSION`"
+	git push origin v`cat ./VERSION`
+	gh release create v`cat ./VERSION`
