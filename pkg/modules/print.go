@@ -12,7 +12,7 @@ func init() {
 			Brief("Print a string").
 			Arg("obj", ANY, "the message or object to log").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
-				glue.Log.Info(args.EnsureString(0).String())
+				glue.Log.Info(args.Get(0).String())
 				return nil, nil
 			})
 

@@ -210,6 +210,11 @@ func (luaruntime *LuaRuntime) SetFunction(
 				continue
 			}
 
+			if arg.Type.Is(runtime.ANY) {
+				values = append(values, AnyValue(L.CheckAny(idx)))
+				continue
+			}
+
 			luaruntime.RaiseError("Unsupported type %s for argument %s", runtime.TypeName(arg.Type), arg.Name)
 		}
 

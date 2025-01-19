@@ -13,7 +13,7 @@ func init() {
 			Arg("fn", FUNC, "The test implementation").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {
 				name := args.EnsureString(0).String()
-				fn := args.EnsureFunction(0)
+				fn := args.EnsureFunction(1)
 
 				glue.RegisterTest(name, func() {
 					R.InvokeFunction(fn)

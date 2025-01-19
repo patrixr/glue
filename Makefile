@@ -11,11 +11,11 @@ build:
 
 example\:dry:
 	@echo "Select test folder to run:"
-	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ --dry-run -p "./examples/$$d"; break; echo ">>> Invalid Selection"; done
+	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ --plan --path "./examples/$$d"; break; echo ">>> Invalid Selection"; done
 
 example:
 	@echo "Select test folder to run:"
-	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ -p "./examples/$$d"; break; echo ">>> Invalid Selection"; done
+	@select d in `\ls examples | grep test`; do test -n "$$d" && go run ./ --path "./examples/$$d"; break; echo ">>> Invalid Selection"; done
 
 document\:lua:
 	@go run ./ document --format lua
