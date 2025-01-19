@@ -81,7 +81,7 @@ func PrintResultReport(glue *core.Glue, results blueprint.Results) string {
 		TraceCount:        len(results.Traces),
 		Success:           results.Success,
 		ErrorCount:        results.ErrorCount,
-		IncludeTests:      glue.RunTests && len(tests) > 0,
+		IncludeTests:      len(tests) > 0,
 		TestResults:       tests,
 		TestLen:           len(tests),
 		TestPassCount:     testPassCount,

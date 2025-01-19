@@ -58,6 +58,8 @@ func RunGlue(opts RunOptions) {
 
 	results := plan.Execute()
 
+	glue.Test()
+
 	fmt.Println(docs.PrintResultReport(glue, results))
 
 	if !results.Success {

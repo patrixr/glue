@@ -22,7 +22,6 @@ type Glue struct {
 	Stack        GlueStack
 	BluePrint    Blueprint
 	Verbose      bool
-	RunTests     bool
 	Done         bool
 	Unsafe       bool
 	FailFast     bool
@@ -58,7 +57,6 @@ func NewGlueWithOptions(options GlueOptions) *Glue {
 		Log:          logger,
 		Cache:        q.NewInMemoryCache[string](time.Hour * 8760),
 		Context:      ctx,
-		RunTests:     true,
 		BluePrint:    nil,
 		Machine:      machine.NewLocalMachine(),
 	}
@@ -89,10 +87,6 @@ func (glue *Glue) CompilePlan(file string) (Blueprint, error) {
 
 	if err := glue.execFile(file); err != nil {
 		return nil, err
-	}
-
-	if glue.RunTests {
-		glue.Test()
 	}
 
 	_, errors = glue.Fire(EV_GLUE_PLAN_END, glue)
