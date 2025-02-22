@@ -1,0 +1,32 @@
+<h1>Hombrew</h1>
+<h2>Documentation</h2>
+<p>This module is responsible for managing Homebrew installations and upgrades. It provides three main functionalities:</p>
+<ol>
+<li><strong>HomebrewInstall</strong>: Ensures that Homebrew is installed on the machine. If Homebrew is not installed, it will install it.</li>
+<li><strong>Homebrew</strong>: Marks specific Homebrew packages, taps, mac app stores, whalebrews, and casks for installation.</li>
+<li><strong>HomebrewUpgrade</strong>: Upgrades all installed Homebrew packages to their latest versions.</li>
+</ol>
+<h3>Usage</h3>
+<p>To use this module, you need to plug the desired functionality into your Glue configuration. Below are examples of how to use each function:</p>
+<h4>HomebrewInstall</h4>
+<pre><code class="language-lua">HomebrewInstall()
+</code></pre>
+<h4>Homebrew</h4>
+<pre><code class="language-lua">Homebrew({
+  taps =  {
+    &quot;oven-sh/bun&quot;,
+    &quot;homebrew/cask-fonts&quot;,
+  },
+  casks = {
+    &quot;steam&quot;,
+    &quot;emacs&quot;,
+    &quot;love&quot;,
+  },
+  packages = {
+    &quot;emacs&quot;
+  }
+})
+</code></pre>
+<h4>HomebrewUpgrade</h4>
+<pre><code class="language-lua">HomebrewUpgrade()
+</code></pre>

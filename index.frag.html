@@ -1,0 +1,146 @@
+<h1>Glue</h1>
+<p>Glue is a powerful system setup tool combining using Lua as a configuration language .
+It provides an intuitive, imperative approach to machine setup and configuration management.</p>
+<blockquote>
+<p>Warning: Glue is still is in prototype phase. Features and APIs may evolve</p>
+</blockquote>
+<h2>Overview</h2>
+<p>Glue seamlessly combines Go + Lua (hence the name) to offer:</p>
+<ul>
+<li>Lua-based configuration language</li>
+<li>Simple, imperative API (inspired by Ansible)</li>
+<li>Extensible module system</li>
+<li>&quot;Blueprint&quot; generation and execution</li>
+<li>Filtering of configuration blocks</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> Glue is still in prototype phase. Features and APIs may evolve. Please report issues via GitHub.</p>
+</blockquote>
+<h2>Quick Start</h2>
+<p>Glue typically works globally on your system by referencing the <code>glue.lua</code> file in your XDG_CONFIG_HOME folder.
+Typically that would be <code>~/.config/glue/glue.lua</code>.</p>
+<p>Here's an example of a configuration that sets up some configurations and installs Homebrew packages:</p>
+<pre><code class="language-lua">group(&quot;configs&quot;, function ()
+    Copy({
+        source = &quot;./configs/alacritty&quot; .. name,
+        dest = &quot;~/.config/alacritty&quot;,
+        strategy = &quot;merge&quot;
+    })
+
+    Blockinfile({
+        state = true,
+        block = read(&quot;./configs/zshrc.sh&quot;),
+        path = &quot;~/.zshrc&quot;
+    })
+end)
+
+group(&quot;homebrew&quot;, function ()
+    HomebrewInstall()
+
+    Homebrew({
+        taps =  {
+            &quot;oven-sh/bun&quot;,
+            &quot;homebrew/cask-fonts&quot;,
+        },
+        casks = {
+            &quot;zen-browser&quot;,
+            &quot;steam&quot;,
+            &quot;emacs&quot;,
+            &quot;love&quot;,
+        },
+        packages = {
+            &quot;ffmpeg&quot;,
+            &quot;watch&quot;,
+            &quot;httpie&quot;,
+            &quot;ruby&quot;,
+            &quot;lua&quot;,
+        }
+    })
+end)
+
+</code></pre>
+<h2>CLI Reference</h2>
+<pre><code class="language-bash">glue [flags] [command]
+</code></pre>
+<h3>Commands</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>completion</code></td>
+<td>Generate shell autocompletion scripts</td>
+</tr>
+<tr>
+<td><code>document</code></td>
+<td>Generate internal function documentation</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td>Display help information</td>
+</tr>
+<tr>
+<td><code>init</code></td>
+<td>Initialize Glue on your system</td>
+</tr>
+<tr>
+<td><code>only</code></td>
+<td>Execute specific groups using a selector</td>
+</tr>
+</tbody>
+</table>
+<h3>Flags</h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--plan</code></td>
+<td>See the execution blueprints without applying anything</td>
+</tr>
+<tr>
+<td><code>-h, --help</code></td>
+<td>Show help information</td>
+</tr>
+<tr>
+<td><code>-p, --path string</code></td>
+<td>Specify glue.lua location</td>
+</tr>
+<tr>
+<td><code>-v, --verbose</code></td>
+<td>Enable verbose logging</td>
+</tr>
+</tbody>
+</table>
+<h2>Extending Glue</h2>
+<p>Glue can be extended through its module system. Create new modules in the <code>modules</code> package using the registry system.</p>
+<p>Here's an example of a simple module that prints a message:</p>
+<pre><code class="language-go">Registry.RegisterModule(func(glue *core.Glue) error {
+	glue.Plug(&quot;print&quot;, core.FUNCTION).
+		Brief(&quot;Print a string&quot;).
+		Arg(&quot;obj&quot;, ANY, &quot;the message or object to log&quot;).
+		Do(func(R Runtime, args *Arguments) (RTValue, error) {
+			glue.Log.Info(args.Get(0).String())
+			return nil, nil
+		})
+
+	return nil
+})
+</code></pre>
+<h2>Contributing</h2>
+<p>Contributions are welcome! Please:</p>
+<ol>
+<li>Fork the repository</li>
+<li>Create a feature branch</li>
+<li>Submit a pull request</li>
+</ol>
+<h2>License</h2>
+<p>GNU General Public License v3.0</p>

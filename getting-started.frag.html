@@ -1,0 +1,25 @@
+<h1>Getting Started</h1>
+<h2>Installation</h2>
+<p>To install Auteur, you can use one of the following methods:</p>
+<h3>Homebrew</h3>
+<p>Glue is available as a Homebrew formula. To install Auteur using Homebrew, run the following commands:</p>
+<p>First to set up the tap</p>
+<pre><code class="language-bash">brew tap tronica/tap
+</code></pre>
+<p>And then to install Glue</p>
+<pre><code class="language-bash">brew install glue
+</code></pre>
+<p>Glue should then be available as a command line tool.</p>
+<h3>Using Go</h3>
+<p>To install Glue using Go, run the following command:</p>
+<pre><code class="language-bash">go install github.com/patrixr/glue
+</code></pre>
+<h2>Initialization</h2>
+<p>To initialize a new Glue project, run the following command:</p>
+<pre><code class="language-bash">glue init
+</code></pre>
+<p>This should create a new directory according to your <code>XDG_CONFIG_HOME</code> or <code>HOME</code> environment variable.</p>
+<p>Typically, this will be <code>~/.config/glue</code></p>
+<h2>Editing the script</h2>
+<p>To edit the script, navigate to the newly created directory and open the <code>glue.lua</code> file.</p>
+<p>Running glue will always look for a <code>glue.lua</code> file in the current directory first, and then default to the <code>~/.config/glue</code> directory.</p>

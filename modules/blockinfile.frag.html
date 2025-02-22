@@ -1,0 +1,32 @@
+<h1>Blockinfile</h1>
+<p>The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
+The block is surrounded by customizable markers to define its boundaries.</p>
+<p>Options:</p>
+<ul>
+<li>block: The multi-line text block to be inserted or updated.</li>
+<li>insertafter: A pattern to insert the block after.</li>
+<li>insertbefore: A pattern to insert the block before.</li>
+<li>marker: The marker template with &quot;{mark}&quot; as a placeholder.</li>
+<li>markerbegin: The text to replace &quot;{mark}&quot; for the beginning marker.</li>
+<li>markerend: The text to replace &quot;{mark}&quot; for the ending marker.</li>
+<li>state: A boolean to indicate whether to insert/update (true) or remove (false) the block.</li>
+<li>backup: A boolean to indicate whether to create a backup of the file.</li>
+<li>create: A boolean to indicate whether to create the file if it does not exist.</li>
+</ul>
+<p>Example usage:</p>
+<pre><code class="language-lua">
+  Blockinfile({
+    Insertafter = &quot;pattern to insert after&quot;,
+    Insertbefore = &quot;pattern to insert before&quot;,
+    Marker = &quot;# {mark}&quot;,
+    Markerbegin = &quot;BEGIN GLUE CUSTOM BLOCK&quot;,
+    Markerend = &quot;END GLUE CUSTOM BLOCK&quot;,
+    State = true,
+    Backup = true,
+    Create = true,
+    Block = [[
+      This is a block of text
+      that spans multiple lines.
+    ]],
+  })
+</code></pre>

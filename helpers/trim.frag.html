@@ -1,0 +1,15 @@
+<h1>Trim</h1>
+<p>The trim method removes leading and trailing whitespaces from a string.
+Itcan also be used to clean up multi-line strings in Lua scripts.</p>
+<p>Here's an example of how you might use it in a Lua script:</p>
+<pre><code class="language-lua">local text = [[
+    This is a multi-line string
+       that has inconsistent indentation.
+]]
+
+local trimmed_text = trim(text)
+</code></pre>
+<p>This would result in the following text:</p>
+<pre><code class="language-text">This is a multi-line string
+   that has inconsistent indentation.
+</code></pre>

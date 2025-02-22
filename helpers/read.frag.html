@@ -1,0 +1,9 @@
+<h1>Read</h1>
+<p>The read helper function reads the content of a file and returns it as a string.</p>
+<p>Here's an example where we use the read function to inject our custom ZSH snippets into zshrc using <code>read</code>:</p>
+<pre><code class="language-lua">Blockinfile({
+  state = true,
+  block = read(&quot;my_zshrc&quot;),
+  path = &quot;~/.zshrc&quot;
+})
+</code></pre>

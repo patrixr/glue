@@ -1,0 +1,17 @@
+<h1>Backup</h1>
+<p>This module provides functionality to copy files or directories from a source to a destination.
+It supports various options for handling conflicts and symlinks.</p>
+<h2>Options</h2>
+<ul>
+<li><code>source</code>: The file or folder to copy.</li>
+<li><code>dest</code>: The destination to copy to.</li>
+<li><code>strategy</code>: (Optional) Strategy for managing conflicts. Can be &quot;replace&quot; or &quot;merge&quot; (default: &quot;merge&quot;).</li>
+<li><code>symlink</code>: (Optional) How to handle symlinks. Can be &quot;deep&quot;, &quot;shallow&quot;, or &quot;skip&quot; (default: &quot;skip&quot;).</li>
+</ul>
+<h2>Example</h2>
+<pre><code class="language-lua">
+  copy({
+ source = &quot;./folder&quot;,
+ dest = &quot;./copy&quot;
+  })
+</code></pre>

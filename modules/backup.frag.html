@@ -1,0 +1,12 @@
+<h1>Backup</h1>
+<p>The <code>Backup</code> module provides functionality to create a backup of a specified file. It ensures that the original file is preserved by creating a copy with a timestamp appended to its name.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code>path</code> (string): The path to the file that needs to be backed up.</li>
+</ul>
+<h2>Usage</h2>
+<p>To use the <code>Backup</code> module, you need to call the <code>backup</code> function with the path of the file you want to back up. The function will create a backup file in the same directory with a <code>.backup.&lt;timestamp&gt;</code> suffix.</p>
+<h2>Example</h2>
+<p>Example usage:</p>
+<pre><code class="language-lua">Backup(&quot;file.txt&quot;)
+</code></pre>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html>
+  <head>
+    <title>getting-started</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <link rel="stylesheet" href="https://early.webawesome.com/webawesome@3.0.0-alpha.9/dist/styles/webawesome.css" />
+    <link rel="stylesheet" href="https://early.webawesome.com/webawesome@3.0.0-alpha.9/dist/styles/themes/mellow.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/kimbie-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="https://early.webawesome.com/webawesome@3.0.0-alpha.9/dist/webawesome.loader.js"></script>
+    <script type="module" src="/script.js"></script>
+  </head>
+  <body>
+    <!-- SIDE BAR -->
+    <div class="sidebar-overlay">
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-content">
+        <div class="top">
+          <span class="close-sidebar wa-body-s">
+            <wa-icon name="circle-xmark" class="close" aria-label="Close menu"></wa-icon>
+            <span>Close</span>
+          </span>
+          <a class="title"
+            href="index"
+            hx-get="index.frag"
+            hx-target="#article-content"
+            hx-push-url="/"
+            hx-indicator="#loading-indicator"
+          >
+            Glue
+            <span class="version">0.1.3</span>
+          </a>
+          
+          <wa-tree>
+            
+              
+            <wa-tree-item>
+              
+                <a
+                  href="/getting-started"
+                  hx-get="/getting-started.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/getting-started"
+                  hx-indicator="#loading-indicator"
+                >getting started</a>
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                <a
+                  href="/runtime"
+                  hx-get="/runtime.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/runtime"
+                  hx-indicator="#loading-indicator"
+                >runtime</a>
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                
+                  <a
+                    href="/modules/index"
+                    hx-get="/modules/index.frag"
+                    hx-target="#article-content"
+                    hx-push-url="/modules/index"
+                    hx-indicator="#loading-indicator"
+                  >Modules</a>
+                
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/sh"
+                  hx-get="/modules/sh.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/sh"
+                  hx-indicator="#loading-indicator"
+                >Sh</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/note"
+                  hx-get="/modules/note.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/note"
+                  hx-indicator="#loading-indicator"
+                >Note</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/homebrew"
+                  hx-get="/modules/homebrew.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/homebrew"
+                  hx-indicator="#loading-indicator"
+                >Homebrew</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/copy"
+                  hx-get="/modules/copy.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/copy"
+                  hx-indicator="#loading-indicator"
+                >Copy</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/blockinfile"
+                  hx-get="/modules/blockinfile.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/blockinfile"
+                  hx-indicator="#loading-indicator"
+                >Blockinfile</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/modules/backup"
+                  hx-get="/modules/backup.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules/backup"
+                  hx-indicator="#loading-indicator"
+                >Backup</a>
+              
+            </wa-tree-item>
+          
+                
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                
+                  <a
+                    href="/helpers/index"
+                    hx-get="/helpers/index.frag"
+                    hx-target="#article-content"
+                    hx-push-url="/helpers/index"
+                    hx-indicator="#loading-indicator"
+                  >Helpers</a>
+                
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/helpers/trim"
+                  hx-get="/helpers/trim.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/helpers/trim"
+                  hx-indicator="#loading-indicator"
+                >Trim</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/helpers/read"
+                  hx-get="/helpers/read.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/helpers/read"
+                  hx-indicator="#loading-indicator"
+                >Read</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/helpers/print"
+                  hx-get="/helpers/print.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/helpers/print"
+                  hx-indicator="#loading-indicator"
+                >Print</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/helpers/capitalize"
+                  hx-get="/helpers/capitalize.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/helpers/capitalize"
+                  hx-indicator="#loading-indicator"
+                >Capitalize</a>
+              
+            </wa-tree-item>
+          
+                
+                  
+            <wa-tree-item>
+              
+                <a
+                  href="/helpers/assert"
+                  hx-get="/helpers/assert.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/helpers/assert"
+                  hx-indicator="#loading-indicator"
+                >Assert</a>
+              
+            </wa-tree-item>
+          
+                
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                <a
+                  href="/configuration"
+                  hx-get="/configuration.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/configuration"
+                  hx-indicator="#loading-indicator"
+                >Configuration</a>
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                <a
+                  href="/concepts"
+                  hx-get="/concepts.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/concepts"
+                  hx-indicator="#loading-indicator"
+                >Concepts</a>
+              
+            </wa-tree-item>
+          
+            
+              
+            <wa-tree-item>
+              
+                <a
+                  href="/modules-vs-helpers"
+                  hx-get="/modules-vs-helpers.frag"
+                  hx-target="#article-content"
+                  hx-push-url="/modules-vs-helpers"
+                  hx-indicator="#loading-indicator"
+                >modules vs helpers</a>
+              
+            </wa-tree-item>
+          
+            
+            
+              <wa-tree-item>
+                
+                  <wa-icon style="font-size: 0.7em; margin-right: 0.8em;" name="link"></wa-icon>
+                
+                <a href="https://github.com/patrixr/auteur">Github</a>
+              </wa-tree-item>
+            
+          </wa-tree>
+        </div>
+        <div class="bottom">
+          <wa-switch id="theme-toggle"><wa-icon name="lightbulb"></wa-icon></wa-switch>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <div class="nav-bar">
+        <wa-icon name="bars" class="hamburger-menu" aria-label="Toggle menu"></wa-icon>
+      </div>
+      <div class="article">
+        <main class="container">
+          <article id="article-content">
+            <h1>Getting Started</h1>
+<h2>Installation</h2>
+<p>To install Auteur, you can use one of the following methods:</p>
+<h3>Homebrew</h3>
+<p>Glue is available as a Homebrew formula. To install Auteur using Homebrew, run the following commands:</p>
+<p>First to set up the tap</p>
+<pre><code class="language-bash">brew tap tronica/tap
+</code></pre>
+<p>And then to install Glue</p>
+<pre><code class="language-bash">brew install glue
+</code></pre>
+<p>Glue should then be available as a command line tool.</p>
+<h3>Using Go</h3>
+<p>To install Glue using Go, run the following command:</p>
+<pre><code class="language-bash">go install github.com/patrixr/glue
+</code></pre>
+<h2>Initialization</h2>
+<p>To initialize a new Glue project, run the following command:</p>
+<pre><code class="language-bash">glue init
+</code></pre>
+<p>This should create a new directory according to your <code>XDG_CONFIG_HOME</code> or <code>HOME</code> environment variable.</p>
+<p>Typically, this will be <code>~/.config/glue</code></p>
+<h2>Editing the script</h2>
+<p>To edit the script, navigate to the newly created directory and open the <code>glue.lua</code> file.</p>
+<p>Running glue will always look for a <code>glue.lua</code> file in the current directory first, and then default to the <code>~/.config/glue</code> directory.</p>
+
+          </article>
+        </main></div>
+    </div>
+  </body>
+</html>

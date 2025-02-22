@@ -1,0 +1,10 @@
+<h1>Modules</h1>
+<p>Modules in Glue are self-contained units of functionality that can be independently developed and integrated into the Glue framework.</p>
+<p>In practice they look like making a Lua function call, such as a <code>Copy(...)</code> call to copy files over, but under the hood they actually
+get composed into a <strong>Blueprint</strong> which can be viewed, serialized and shared with or without being executed.</p>
+<p>Modules are <strong>always capitalized</strong> (e.g. <code>Blockinfile</code>)</p>
+<h1>Helper functions</h1>
+<p>Helper functions look similar to modules in the sense that they are also Lua functions.
+The key difference is that helper functions get <strong>executed immediatly</strong> during the Blueprint creation, and are <em>not</em> part of the generated blueprints.</p>
+<p>Some common use cases involve reading from files, string manipulation or http requests.</p>
+<p>Helpers are <strong>always lowercased</strong> (e.g. <code>read</code>)</p>

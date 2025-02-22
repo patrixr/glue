@@ -1,0 +1,28 @@
+<h1>Modules vs Helpers</h1>
+<p>The difference between Glue modules and helpers appears subtle at first, but it is important to understand the distinction.</p>
+<h2>Modules</h2>
+<p>Modules appear as normal Lua functions, but they do not execute logic directly. Instead what they do is <em>register</em> functions on the blueprint for it to be executed later.</p>
+<p>Example:</p>
+<pre><code class="language-lua">Blockinfile({
+  state = true,
+  block = &quot;some file content&quot;
+  path = &quot;~/.zshrc&quot;
+})
+</code></pre>
+<p>This example script will populate a blueprint with a <em>Blockinfile</em> step.
+Notice that the module starts with a capital letter, which is a convention to indicate that it is a module.
+Now let's expand this example by using a helper function.</p>
+<h2>Helpers</h2>
+<p>Helpers are functions that execute logic directly. They are simple Lua methods.
+For example, we'll use the <code>read</code> helper to dynamically load the content of the the <em>Blockinfile</em> module into the blueprint.</p>
+<pre><code class="language-lua">Blockinfile({
+  state = true,
+  block = read(&quot;./local_config.zshrc&quot;),
+  path = &quot;~/.zshrc&quot;
+})
+</code></pre>
+<p>This example script will read the content of the file <code>local_config.zshrc</code> and use it as the block content for the <em>Blockinfile</em> module.
+But that is executed during the blueprint generation, not during the execution of the blueprint.</p>
+<p>Meaning that the content of the file will be serialized into the blueprint itself.
+This is a critical concept to understand, as it would theoretically allow us to run the blueprint on a different machine without the need for the file to be present.</p>
+<p>By convention, helper functions start with a lowercase letter.</p>
