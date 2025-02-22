@@ -61,11 +61,11 @@ check-root:
 	fi
 
 tag: test
-	git tag -a "v$VERSION" -m "Release version $VERSION"
-	git push origin "v$VERSION"
+	git tag -a "v`${VERSION_CMD}`" -m "Release version `${VERSION_CMD}`"
+	git push origin v`${VERSION_CMD}`
 
 release:
-	gh release create "v$VERSION"
+	gh release create  v`${VERSION_CMD}`
 
 auteur:
 	go run github.com/patrixr/auteur@v0.0.25
