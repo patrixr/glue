@@ -1,13 +1,16 @@
-.PHONY: tidy example example\:dry help build test clean install uninstall check-root document\:lua document\:md release tag
+.PHONY: tidy example example\:dry help build test clean install uninstall check-root document\:lua document\:md release tag auteur
 
 BIN_NAME := glue
 BUILD_FOLDER := $(CURDIR)/.out
 EXAMPLE_DIR := examples/homebrew
+MODULE_NAME := github.com/patrixr/glue
 PREFIX ?= /usr/local
 INSTALL_PATH = $(PREFIX)/bin
+VERSION_CMD := grep "version:" auteur.yaml | cut -d: -f2 | tr -d ' '
+VERSION := $(shell ${VERSION_CMD})
 
 build:
-	go build -o ${BUILD_FOLDER}/${BIN_NAME} ./
+	go build -ldflags="-X '${MODULE_NAME}/cmd.Version=${VERSION}'" -o ${BUILD_FOLDER}/${BIN_NAME} ./
 
 example\:dry:
 	@echo "Select test folder to run:"
@@ -63,3 +66,9 @@ tag: test
 
 release:
 	gh release create  v`cat ./VERSION`
+
+auteur:
+	go run github.com/patrixr/auteur@v0.0.25
+
+version: build
+	${BUILD_FOLDER}/${BIN_NAME} version

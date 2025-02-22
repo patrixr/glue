@@ -8,6 +8,16 @@ import (
 const ABOUT_CACHE_KEY = "annotation:about"
 
 func init() {
+	// @auteur("Modules/Note")
+	//
+	// # Note
+	//
+	// The note module allows users to annotate the execution scope.
+	// This can be useful for adding context or explanations to different parts of the trace.
+	//
+	// ```lua
+	// note("some information")
+	// ```
 	Registry.RegisterModule(func(glue *core.Glue) error {
 
 		// When a module is run, we check if there is an annotation from the user

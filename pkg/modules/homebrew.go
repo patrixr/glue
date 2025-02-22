@@ -7,6 +7,53 @@ import (
 )
 
 func init() {
+	// @auteur("Modules/Homebrew")
+	//
+	// # Hombrew
+	//
+	// ## Documentation
+	//
+	// This module is responsible for managing Homebrew installations and upgrades. It provides three main functionalities:
+	//
+	// 1. **HomebrewInstall**: Ensures that Homebrew is installed on the machine. If Homebrew is not installed, it will install it.
+	// 2. **Homebrew**: Marks specific Homebrew packages, taps, mac app stores, whalebrews, and casks for installation.
+	// 3. **HomebrewUpgrade**: Upgrades all installed Homebrew packages to their latest versions.
+	//
+	// ### Usage
+	//
+	// To use this module, you need to plug the desired functionality into your Glue configuration. Below are examples of how to use each function:
+	//
+	// #### HomebrewInstall
+	//
+	// ```lua
+	// HomebrewInstall()
+	// ```
+	//
+	// #### Homebrew
+	//
+	// ```lua
+	// Homebrew({
+	//   taps =  {
+	//     "oven-sh/bun",
+	//     "homebrew/cask-fonts",
+	//   },
+	//   casks = {
+	//     "steam",
+	//     "emacs",
+	//     "love",
+	//   },
+	//   packages = {
+	//   	"emacs"
+	//   }
+	// })
+	// ```
+	//
+	// #### HomebrewUpgrade
+	//
+	// ```lua
+	// HomebrewUpgrade()
+	// ```
+	//
 	Registry.RegisterModule(HomebrewMod)
 }
 

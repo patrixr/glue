@@ -7,46 +7,49 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/patrixr/auteur"
 	"github.com/patrixr/glue/pkg/core"
 	. "github.com/patrixr/glue/pkg/runtime"
 	"github.com/patrixr/q"
 )
 
 func init() {
-	auteur.Write("Modules", "Blockinfile", q.Paragraph(`
-		The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
-		The block is surrounded by customizable markers to define its boundaries.
-
-		Options:
-		- block: The multi-line text block to be inserted or updated.
-		- insertafter: A pattern to insert the block after.
-		- insertbefore: A pattern to insert the block before.
-		- marker: The marker template with "{mark}" as a placeholder.
-		- markerbegin: The text to replace "{mark}" for the beginning marker.
-		- markerend: The text to replace "{mark}" for the ending marker.
-		- state: A boolean to indicate whether to insert/update (true) or remove (false) the block.
-		- backup: A boolean to indicate whether to create a backup of the file.
-		- create: A boolean to indicate whether to create the file if it does not exist.
-
-		Example usage in Lua:
-
-		blockinfile({
-			Insertafter = "pattern to insert after",
-			Insertbefore = "pattern to insert before",
-			Marker = "# {mark}",
-			Markerbegin = "BEGIN GLUE CUSTOM BLOCK",
-			Markerend = "END GLUE CUSTOM BLOCK",
-			State = true,
-			Backup = true,
-			Create = true,
-			Block = [[
-				This is a block of text
-				that spans multiple lines.
-			]],
-		})
-	`))
-
+	// @auteur("Modules/Blockinfile")
+	//
+	// # Blockinfile
+	//
+	// The blockinfile function allows you to insert, update, or remove a block of multi-line text in a file.
+	// The block is surrounded by customizable markers to define its boundaries.
+	//
+	// Options:
+	// - block: The multi-line text block to be inserted or updated.
+	// - insertafter: A pattern to insert the block after.
+	// - insertbefore: A pattern to insert the block before.
+	// - marker: The marker template with "{mark}" as a placeholder.
+	// - markerbegin: The text to replace "{mark}" for the beginning marker.
+	// - markerend: The text to replace "{mark}" for the ending marker.
+	// - state: A boolean to indicate whether to insert/update (true) or remove (false) the block.
+	// - backup: A boolean to indicate whether to create a backup of the file.
+	// - create: A boolean to indicate whether to create the file if it does not exist.
+	//
+	// Example usage:
+	//
+	// ```lua
+	//
+	// 	Blockinfile({
+	// 		Insertafter = "pattern to insert after",
+	// 		Insertbefore = "pattern to insert before",
+	// 		Marker = "# {mark}",
+	// 		Markerbegin = "BEGIN GLUE CUSTOM BLOCK",
+	// 		Markerend = "END GLUE CUSTOM BLOCK",
+	// 		State = true,
+	// 		Backup = true,
+	// 		Create = true,
+	// 		Block = [[
+	// 			This is a block of text
+	// 			that spans multiple lines.
+	// 		]],
+	// 	})
+	// ```
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Plug("blockinfile", core.MODULE).
 			Brief("Insert/update/remove a block of multi-line text surrounded by customizable markers in a file").

@@ -65,7 +65,23 @@ func TryFindFile(directory string, filename string) (string, error) {
 	return "", err
 }
 
+// @auteur("Configuration")
+//
+// # XDG_CONFIG_HOME
+//
+// Glue respects the `XDG_CONFIG_HOME` environment variable.
+// If it is set, Glue will look for the configuration file in the directory specified by `XDG_CONFIG_HOME`.
+// If the variable is not set, Glue will look for the configuration file in the default directory (`~/.config/glue`)
+//
+// ```
+// ~/.config/glue/glue.lua
+// ```
 func GlueHome() (string, error) {
+	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+	if xdgConfigHome != "" {
+		return filepath.Join(xdgConfigHome, "glue"), nil
+	}
+
 	homedir, err := os.UserHomeDir()
 
 	if err != nil {

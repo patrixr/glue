@@ -6,9 +6,20 @@ import (
 )
 
 func init() {
+	// @auteur("Helpers/Assert")
+	//
+	// # Assert
+	//
+	// Asserts the given boolean and raises an error if false.
+	// This helper function is mainly used to validate proper generation of a blueprint
+	//
+	// ```lua
+	// assert(somevalue == "yes")
+	// ```
+
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Plug("assert", core.FUNCTION).
-			Brief("Asserts the given boolean and raises and error if problematic").
+			Brief("Asserts the given boolean and raises an error if problematic").
 			Arg("value", BOOL, "the condition to assert on").
 			Arg("brief", STRING, "short explanation of the next step").
 			Do(func(R Runtime, args *Arguments) (RTValue, error) {

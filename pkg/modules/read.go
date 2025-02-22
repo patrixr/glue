@@ -8,6 +8,21 @@ import (
 )
 
 func init() {
+	// @auteur("Helpers/Read")
+	//
+	// # Read
+	//
+	// The read helper function reads the content of a file and returns it as a string.
+	//
+	// Here's an example where we use the read function to inject our custom ZSH snippets into zshrc using `read`:
+	//
+	// ```lua
+	// Blockinfile({
+	//   state = true,
+	//   block = read("my_zshrc"),
+	//   path = "~/.zshrc"
+	// })
+	//
 	Registry.RegisterModule(
 		func(glue *core.Glue) error {
 			glue.Plug("read", core.FUNCTION).

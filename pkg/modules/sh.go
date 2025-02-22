@@ -6,6 +6,20 @@ import (
 )
 
 func init() {
+	// @auteur("Modules/Sh")
+	//
+	// # Sh
+	//
+	// This module allows running a shell command as part of a blueprint.
+	// Although we generally recommend using glue-native modules to achieve tasks, this is helpful
+	// when the right tooling is not available.
+	//
+	// Example:
+	//
+	// ```lua
+	// Sh("ls -la")
+	// ```
+	//
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Plug("sh", core.MODULE).
 			Brief("Run a shell command").

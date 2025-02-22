@@ -11,6 +11,27 @@ import (
 )
 
 func init() {
+	// @auteur("Modules/Backup")
+	//
+	// # Backup
+	//
+	// The `Backup` module provides functionality to create a backup of a specified file. It ensures that the original file is preserved by creating a copy with a timestamp appended to its name.
+	//
+	// ## Arguments
+	//
+	// - `path` (string): The path to the file that needs to be backed up.
+	//
+	// ## Usage
+	//
+	// To use the `Backup` module, you need to call the `backup` function with the path of the file you want to back up. The function will create a backup file in the same directory with a `.backup.<timestamp>` suffix.
+	//
+	// ## Example
+	//
+	// Example usage:
+	//
+	// ```lua
+	// Backup("file.txt")
+	// ```
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Plug("backup", core.MODULE).
 			Brief("Creates a backup of a file").

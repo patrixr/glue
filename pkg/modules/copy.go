@@ -11,6 +11,29 @@ import (
 )
 
 func init() {
+	// @auteur("Modules/Copy")
+	//
+	// # Backup
+	//
+	// This module provides functionality to copy files or directories from a source to a destination.
+	// It supports various options for handling conflicts and symlinks.
+	//
+	// ## Options
+	// - `source`: The file or folder to copy.
+	// - `dest`: The destination to copy to.
+	// - `strategy`: (Optional) Strategy for managing conflicts. Can be "replace" or "merge" (default: "merge").
+	// - `symlink`: (Optional) How to handle symlinks. Can be "deep", "shallow", or "skip" (default: "skip").
+	//
+	// ## Example
+	//
+	// ```lua
+	//
+	// 	copy({
+	//  source = "./folder",
+	//  dest = "./copy"
+	// 	})
+	// ```
+	//
 	Registry.RegisterModule(func(glue *core.Glue) error {
 		glue.Plug("copy", core.MODULE).
 			Brief("Copies folder").

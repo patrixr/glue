@@ -53,6 +53,7 @@ func RunGlue(opts RunOptions) {
 	}
 
 	if opts.PlanOnly {
+		fmt.Println(plan.PrettyPrint())
 		return
 	}
 

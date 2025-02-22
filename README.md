@@ -1,105 +1,123 @@
 # Glue
 
-Glue allows machine setups using Lua as a configuration language. It is designed to be simple and easy to use, while still being powerful enough to handle complex configurations.
+Glue is a powerful system setup tool combining using Lua as a configuration language .
+It provides an intuitive, imperative approach to machine setup and configuration management.
 
-It is built in Golang (Go + Lua = Glue).
+> Warning: Glue is still is in prototype phase. Features and APIs may evolve
 
-> **Warning:** This is an early release version of Glue. Features and functionality may change, and there may be bugs or incomplete features.
-> Use with caution and report any issues you encounter.
+## Overview
 
-It is inspired by Ansible's module system, but an imperative API is used instead of a declarative one.
+Glue seamlessly combines Go + Lua (hence the name) to offer:
 
-Example:
+- Lua-based configuration language
+- Simple, imperative API (inspired by Ansible)
+- Extensible module system
+- "Blueprint" generation and execution
+- Filtering of configuration blocks
+
+> **Note:** Glue is still in prototype phase. Features and APIs may evolve. Please report issues via GitHub.
+
+## Quick Start
+
+Glue typically works globally on your system by referencing the `glue.lua` file in your XDG_CONFIG_HOME folder.
+Typically that would be `~/.config/glue/glue.lua`.
+
+Here's an example of a configuration that sets up some configurations and installs Homebrew packages:
 
 ```lua
-note("Inject zsh configuration")
+group("configs", function ()
+    Copy({
+        source = "./configs/alacritty" .. name,
+        dest = "~/.config/alacritty",
+        strategy = "merge"
+    })
 
-blockinfile({
-  state = true,
-  block = read("./my-zsh-config"),
-  path = "~/.zshrc"
-})
-
-note("Import emacs configuration")
-
-copy({
-  source = "./my-emacs",
-  dest = "~/.config/emacs",
-  strategy = "merge"
-})
-
-group("packages", function ()
-  homebrew_install()
-
-  homebrew({
-    casks = {
-      "emacs",
-      "love",
-      "redisinsight",
-      "docker",
-      "obsidian",
-      "ghostty",
-      "firefox",
-    },
-    packages = {
-      "typst",
-      "gleam",
-      "ruby",
-      "go",
-      "bun",
-      "lua",
-    }
-  })
+    Blockinfile({
+        state = true,
+        block = read("./configs/zshrc.sh"),
+        path = "~/.zshrc"
+    })
 end)
+
+group("homebrew", function ()
+    HomebrewInstall()
+
+    Homebrew({
+        taps =  {
+            "oven-sh/bun",
+            "homebrew/cask-fonts",
+        },
+        casks = {
+            "zen-browser",
+            "steam",
+            "emacs",
+            "love",
+        },
+        packages = {
+            "ffmpeg",
+            "watch",
+            "httpie",
+            "ruby",
+            "lua",
+        }
+    })
+end)
+
 ```
 
-## CLI Usage
+## CLI Reference
 
 ```bash
-Glue is a machine configuration tool that allows you to use Lua to easily streamline your system setup
-
-Usage:
-  glue [flags]
-  glue [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  document    Generates a documentation of Glue's internal functions
-  help        Help about any command
-  init        Initializes glue on your system
-  only        Execute Glue only on a subset of groups using a selector
-
-Flags:
-  -d, --dry-run       See the execution flow without running anything
-  -h, --help          help for glue
-  -p, --path string   Directory or file to look for glue.lua
-  -v, --verbose       Enable verbose mode
-
-Use "glue [command] --help" for more information about a command.
+glue [flags] [command]
 ```
 
-## Adding modules
+### Commands
 
-Glue supports adding modules to extend its functionality. To add a module, create a new file in the `modules` package.
-The file should register a module using the existing registry system.
+| Command      | Description                              |
+| ------------ | ---------------------------------------- |
+| `completion` | Generate shell autocompletion scripts    |
+| `document`   | Generate internal function documentation |
+| `help`       | Display help information                 |
+| `init`       | Initialize Glue on your system           |
+| `only`       | Execute specific groups using a selector |
+
+### Flags
+
+| Flag                | Description                                            |
+| ------------------- | ------------------------------------------------------ |
+| `--plan`            | See the execution blueprints without applying anything |
+| `-h, --help`        | Show help information                                  |
+| `-p, --path string` | Specify glue.lua location                              |
+| `-v, --verbose`     | Enable verbose logging                                 |
+
+## Extending Glue
+
+Glue can be extended through its module system. Create new modules in the `modules` package using the registry system.
+
+Here's an example of a simple module that prints a message:
 
 ```go
-// Example of registering a print method
-func init() {
-	Registry.RegisterModule(func(glue *core.Glue) error {
-		glue.Plug().
-			Name("print").
-			Short("Print a string").
-			Long("Print a string").
-			Arg("obj", "any", "the message or object to log").
-			Example("print('Hello, world!')").
-			Do(func(L *lua.LState) (int, error) {
-				input := luatools.GetArgAsString(L, 1)
-				glue.Log.Info(input)
-				return 0, nil
-			})
+Registry.RegisterModule(func(glue *core.Glue) error {
+	glue.Plug("print", core.FUNCTION).
+		Brief("Print a string").
+		Arg("obj", ANY, "the message or object to log").
+		Do(func(R Runtime, args *Arguments) (RTValue, error) {
+			glue.Log.Info(args.Get(0).String())
+			return nil, nil
+		})
 
-		return nil
-	})
-}
+	return nil
+})
 ```
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+## License
+
+GNU General Public License v3.0

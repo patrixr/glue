@@ -1,5 +1,14 @@
 package blueprint
 
+// @auteur("Concepts")
+//
+// # Blueprints
+//
+// Glue **blueprints** are a way to define a series of actions to be taken in a structured manner.
+// Not only do they allow for the execution of complex workflows, the also enable us to view, serialize and share those
+// workflows with or without executing them.
+//
+
 type ActionFunc func() error
 
 type BlueprintFunc func() Trace

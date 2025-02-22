@@ -6,6 +6,20 @@ import (
 )
 
 func init() {
+	// @auteur("Helpers/Print")
+	//
+	// # Print
+	//
+	// Prints a message or object to the log.
+	// This helper takes one argument, `obj`, which can be any type.
+	// The `obj` is converted to a string and logged as an informational message.
+	//
+	// E.g.
+	//
+	// ```lua
+	// print("hello world")
+	// ```
+	//
 	Registry.RegisterModule(func(glue *core.Glue) error {
 
 		glue.Plug("print", core.FUNCTION).

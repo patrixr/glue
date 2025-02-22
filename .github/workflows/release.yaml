@@ -3,8 +3,8 @@ on:
     types: [created]
 
 permissions:
-    contents: write
-    packages: write
+  contents: write
+  packages: write
 
 jobs:
   test:
@@ -14,14 +14,26 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.x'
+          go-version: "1.23.x"
       - name: Install dependencies
         run: go get .
       - name: Build
         run: make build
       - name: Test
         run: make test
-    
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Generate docs
+        run: make auteur
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+
   release:
     needs: test
     name: Release Go Binary
@@ -36,13 +48,13 @@ jobs:
           - goarch: arm64
             goos: windows
     steps:
-    - uses: actions/checkout@v4
-    - uses: wangyoucao577/go-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        goversion: "https://dl.google.com/go/go1.23.1.linux-amd64.tar.gz"
-        project_path: "./"
-        binary_name: "glue"
-        extra_files: LICENSE README.md
+      - uses: actions/checkout@v4
+      - uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://dl.google.com/go/go1.23.1.linux-amd64.tar.gz"
+          project_path: "./"
+          binary_name: "glue"
+          extra_files: LICENSE README.md

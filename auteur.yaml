@@ -1,0 +1,17 @@
+title: "Glue"
+version: 0.1.3
+outfolder: ./.docs
+root: "./"
+webroot: "/"
+theme: "mellow"
+exclude:
+  - .git
+  - tmp
+  - .out
+  - dist
+  - node_modules
+  - "*_test.go"
+links:
+  - title: "Github"
+    url: "https://github.com/patrixr/auteur"
+    icon: "link"
